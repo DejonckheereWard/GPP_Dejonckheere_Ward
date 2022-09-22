@@ -85,12 +85,15 @@ public:
 
 	//Seek Behaviour
 	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
+private:
+	const float m_SlowRotationAngle{ Elite::ToRadians(10.0f) };  // Angle in radians when to slow down the rotation
+	const float m_StopRotationAngle{ Elite::ToRadians(0.1f) };  // Angle in radians when to stop the rotation
 };
 
 ///////////////////////////////////////
 //FACE
 //****
-class Wander : public ISteeringBehavior
+class Wander : public Seek
 {
 public:
 	Wander() = default;
@@ -98,6 +101,13 @@ public:
 
 	//Seek Behaviour
 	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
+
+protected:
+	float m_OffsetDistance{ 6.0f };  // Distance in front of the agent to set the wander circle
+	float m_Radius{ 4.0f };  // Radius of the circle used to pick the target
+	float m_MaxAngleChange{ Elite::ToRadians(45.0f) };
+	float m_WanderAngle{};
+
 };
 
 

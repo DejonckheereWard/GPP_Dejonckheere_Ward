@@ -318,6 +318,9 @@ void App_SteeringBehaviors::SetAgentBehavior(ImGui_Agent& a)
 
 	switch (BehaviorTypes(a.SelectedBehavior))
 	{
+	case BehaviorTypes::Wander:
+		a.pBehavior = new Wander();
+		break;
 	case BehaviorTypes::Seek:
 		a.pBehavior = new Seek();
 		break;

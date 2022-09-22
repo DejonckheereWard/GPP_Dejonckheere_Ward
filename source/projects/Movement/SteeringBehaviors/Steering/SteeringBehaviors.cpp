@@ -114,15 +114,13 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	const Elite::Vector2 agentDirection{ std::cosf(pAgent->GetRotation()), std::sinf(pAgent->GetRotation()) };
 
 	const float angleBetween{ Elite::AngleBetween(targetVector, agentDirection) };
-	constexpr float slowRotationAngle{ Elite::ToRadians(10.0f) };
-	constexpr float stopRotationAngle{ Elite::ToRadians(0.1f) };
 
 
-	if (angleBetween > stopRotationAngle)
+	if (angleBetween > m_StopRotationAngle)
 	{
 		steering.AngularVelocity = -pAgent->GetMaxAngularSpeed();		
 	}
-	else if (angleBetween < -stopRotationAngle)
+	else if (angleBetween < -m_StopRotationAngle)
 	{
 		steering.AngularVelocity = pAgent->GetMaxAngularSpeed();
 	}
@@ -131,9 +129,9 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 		steering.AngularVelocity = 0.0f;
 	}
 
-	if (angleBetween >= -slowRotationAngle && angleBetween <= slowRotationAngle)
+	if (angleBetween >= -m_SlowRotationAngle && angleBetween <= m_SlowRotationAngle)
 	{
-		steering.AngularVelocity *= abs(angleBetween) / slowRotationAngle;
+		steering.AngularVelocity *= abs(angleBetween) / m_SlowRotationAngle;
 	}
 
 	pAgent->SetAutoOrient(false);
@@ -145,8 +143,6 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 		DEBUGRENDERER2D->DrawDirection(pAgent->GetPosition(), agentDirection, 5.0f, Elite::Color(1.0f, 1.0f, 0.0f));
 		DEBUGRENDERER2D->DrawDirection(pAgent->GetPosition(), targetVector, 5.0f, Elite::Color(0.0f, 1.0f, 0.0f));
 		DEBUGRENDERER2D->DrawString(pAgent->GetPosition() + Elite::Vector2(1.5f, 1.5f), std::to_string(Elite::ToDegrees(angleBetween)).c_str());
-		DEBUGRENDERER2D->DrawSegment(pAgent->GetDirection(), targetVector, Elite::Color(0.0f, 1.0f, 0.0f));
-		//DEBUGRENDERER2D->DrawSegment
 	}
 	
 	return steering;
@@ -157,5 +153,33 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 
 SteeringOutput Wander::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 {
-	return SteeringOutput();
+	SteeringOutput steering{};
+
+	// Pick a point at x distance in front of the agent.
+	// In a radius around that point, pick a random point/angle on that circle, of which the edge is the target of the agent.
+	// Can also use random offset to change that point.
+
+	// Get the point at offsetdistance in front of the agent
+	const Elite::Vector2 offsetPoint(pAgent->GetPosition() + (m_OffsetDistance * pAgent->GetDirection()));
+
+
+	// Get a random wander angle
+	m_WanderAngle += (rand() % int(m_MaxAngleChange * 200.0f) / 100.0f) - m_MaxAngleChange;
+
+	// Get the point of the angle on the circle
+	// (offSetPoint + (Radius * Angle)
+	const Elite::Vector2 wanderTarget{ offsetPoint + Elite::Vector2(m_Radius * cosf(m_WanderAngle), m_Radius * sinf(m_WanderAngle))};
+
+
+
+	if (pAgent->CanRenderBehavior())
+	{
+		DEBUGRENDERER2D->DrawCircle(offsetPoint, m_Radius, Elite::Color(0.0f, 0.0f, 1.0f), 0.0f);
+		DEBUGRENDERER2D->DrawPoint(offsetPoint, 5.0f, Elite::Color(0.0f, 0.0f, 1.0f), 0.0f);
+		DEBUGRENDERER2D->DrawPoint(wanderTarget, 5.0f, Elite::Color(0.0f, 1.0f, 1.0f), 0.0f);
+	}
+
+	m_Target.Position = wanderTarget;
+
+	return Seek::CalculateSteering(deltaT, pAgent);
 }
