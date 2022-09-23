@@ -91,7 +91,7 @@ private:
 };
 
 ///////////////////////////////////////
-//FACE
+//Wander
 //****
 class Wander : public Seek
 {
