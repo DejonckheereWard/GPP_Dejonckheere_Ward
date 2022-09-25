@@ -70,7 +70,7 @@ public:
 	Arrive() = default;
 	virtual ~Arrive() = default;
 
-	//Seek Behaviour
+	//Arrive Behaviour
 	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
 };
 
@@ -83,7 +83,7 @@ public:
 	Face() = default;
 	virtual ~Face() = default;
 
-	//Seek Behaviour
+	//Facing Behaviour
 	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
 private:
 	const float m_SlowRotationAngle{ Elite::ToRadians(10.0f) };  // Angle in radians when to slow down the rotation
@@ -99,7 +99,7 @@ public:
 	Wander() = default;
 	virtual ~Wander() = default;
 
-	//Seek Behaviour
+	//Wander Behaviour
 	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
 
 protected:
@@ -120,8 +120,27 @@ public:
 	Pursuit() = default;
 	virtual ~Pursuit() = default;
 
-	//Seek Behaviour
+	//Pursuit Behaviour
 	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
+};
+
+
+///////////////////////////////////////
+//Evade
+//****
+class Evade : public Flee
+{
+public:
+	Evade() = default;
+	virtual ~Evade() = default;
+
+	//Evade Behaviour
+	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
+
+protected:
+	float m_LookAheadSeconds{ 3.0f };  // Constant in seconds determining how far the targets path is calculated.
+
+
 };
 
 #endif

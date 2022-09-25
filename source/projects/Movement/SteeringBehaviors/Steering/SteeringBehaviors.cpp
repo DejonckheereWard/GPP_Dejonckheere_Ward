@@ -251,9 +251,36 @@ SteeringOutput Pursuit::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	{
 		DEBUGRENDERER2D->DrawSegment(pAgent->GetPosition(), targetOffsetPoint, Elite::Color(1.0f, 0.0f, 0.0f));
 	}
-
-
-
-
 	return steering;
+}
+
+SteeringOutput Evade::CalculateSteering(float deltaT, SteeringAgent* pAgent)
+{
+	// Tries to evade the path of the target	
+	
+
+	// Get the vector to the target to compare with
+	const Elite::Vector2 targetVector{ m_Target.Position - pAgent->GetPosition() };
+	
+	// Get the direction of the target and calculate where it will be in the future
+	const Elite::Vector2 targetDirection{ m_Target.LinearVelocity * m_LookAheadSeconds };
+	Elite::Vector2 targetFuturePosition{ m_Target.Position + targetDirection };
+	
+	// Shorten the future calculation if the future position is closer than the current distance
+	const float ratio{ targetVector.MagnitudeSquared() / targetDirection.MagnitudeSquared() };
+	if (ratio < 1.2f)
+	{
+		// Target is too close (flee directly from the current targets position and abandon all hope)
+		targetFuturePosition = m_Target.Position;
+	}
+
+	if (pAgent->CanRenderBehavior())
+	{
+		DEBUGRENDERER2D->DrawSegment(m_Target.Position, targetFuturePosition, Elite::Color(1.0f, 1.0f, 0.0f), 0.0f);
+		DEBUGRENDERER2D->DrawPoint(targetFuturePosition, 5.0f, Elite::Color(0.0f, 0.67f, 1.0f), 0.0f);
+	}
+
+	m_Target.Position = targetFuturePosition;
+	return Flee::CalculateSteering(deltaT, pAgent);
+
 }
