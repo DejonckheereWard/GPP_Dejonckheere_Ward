@@ -105,7 +105,7 @@ public:
 protected:
 	float m_OffsetDistance{ 6.0f };  // Distance in front of the agent to set the wander circle
 	float m_Radius{ 4.0f };  // Radius of the circle used to pick the target
-	float m_MaxAngleChange{ Elite::ToRadians(45.0f) };
+	float m_MaxAngleChange{ Elite::ToRadians(20.0f) };
 	float m_WanderAngle{};
 
 };

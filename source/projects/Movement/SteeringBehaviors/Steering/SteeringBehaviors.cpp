@@ -154,7 +154,6 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 SteeringOutput Wander::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 {
 	SteeringOutput steering{};
-
 	// Pick a point at x distance in front of the agent.
 	// In a radius around that point, pick a random point/angle on that circle, of which the edge is the target of the agent.
 	// Can also use random offset to change that point.
@@ -162,9 +161,9 @@ SteeringOutput Wander::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	// Get the point at offsetdistance in front of the agent
 	const Elite::Vector2 offsetPoint(pAgent->GetPosition() + (m_OffsetDistance * pAgent->GetDirection()));
 
-
-	// Get a random wander angle
-	m_WanderAngle += (rand() % int(m_MaxAngleChange * 200.0f) / 100.0f) - m_MaxAngleChange;
+	// Get a random wander angle (* 100 for floating precision, * 2 to include negative range, - max angle to shift 0 to lowest negative)
+	//m_WanderAngle += (rand() % int(m_MaxAngleChange * 100.0f * 2.0f) / 100.0f) - m_MaxAngleChange;
+	m_WanderAngle += Elite::randomFloat(-m_MaxAngleChange, m_MaxAngleChange);
 
 	// Get the point of the angle on the circle
 	// (offSetPoint + (Radius * Angle)
@@ -175,6 +174,7 @@ SteeringOutput Wander::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	if (pAgent->CanRenderBehavior())
 	{
 		DEBUGRENDERER2D->DrawCircle(offsetPoint, m_Radius, Elite::Color(0.0f, 0.0f, 1.0f), 0.0f);
+		DEBUGRENDERER2D->DrawSegment(pAgent->GetPosition(), wanderTarget, Elite::Color(1.0f, 0.0f, 0.0f));
 		DEBUGRENDERER2D->DrawPoint(offsetPoint, 5.0f, Elite::Color(0.0f, 0.0f, 1.0f), 0.0f);
 		DEBUGRENDERER2D->DrawPoint(wanderTarget, 5.0f, Elite::Color(0.0f, 1.0f, 1.0f), 0.0f);
 	}
