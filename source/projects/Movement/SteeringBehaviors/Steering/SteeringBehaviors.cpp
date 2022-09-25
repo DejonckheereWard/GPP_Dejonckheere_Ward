@@ -114,15 +114,13 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	const Elite::Vector2 agentDirection{ std::cosf(pAgent->GetRotation()), std::sinf(pAgent->GetRotation()) };
 
 	const float angleBetween{ Elite::AngleBetween(targetVector, agentDirection) };
-	constexpr float slowRotationAngle{ Elite::ToRadians(10.0f) };
-	constexpr float stopRotationAngle{ Elite::ToRadians(0.1f) };
 
 
-	if (angleBetween > stopRotationAngle)
+	if (angleBetween > m_StopRotationAngle)
 	{
 		steering.AngularVelocity = -pAgent->GetMaxAngularSpeed();		
 	}
-	else if (angleBetween < -stopRotationAngle)
+	else if (angleBetween < -m_StopRotationAngle)
 	{
 		steering.AngularVelocity = pAgent->GetMaxAngularSpeed();
 	}
@@ -131,9 +129,9 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 		steering.AngularVelocity = 0.0f;
 	}
 
-	if (angleBetween >= -slowRotationAngle && angleBetween <= slowRotationAngle)
+	if (angleBetween >= -m_SlowRotationAngle && angleBetween <= m_SlowRotationAngle)
 	{
-		steering.AngularVelocity *= abs(angleBetween) / slowRotationAngle;
+		steering.AngularVelocity *= abs(angleBetween) / m_SlowRotationAngle;
 	}
 
 	pAgent->SetAutoOrient(false);
@@ -145,8 +143,6 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 		DEBUGRENDERER2D->DrawDirection(pAgent->GetPosition(), agentDirection, 5.0f, Elite::Color(1.0f, 1.0f, 0.0f));
 		DEBUGRENDERER2D->DrawDirection(pAgent->GetPosition(), targetVector, 5.0f, Elite::Color(0.0f, 1.0f, 0.0f));
 		DEBUGRENDERER2D->DrawString(pAgent->GetPosition() + Elite::Vector2(1.5f, 1.5f), std::to_string(Elite::ToDegrees(angleBetween)).c_str());
-		DEBUGRENDERER2D->DrawSegment(pAgent->GetDirection(), targetVector, Elite::Color(0.0f, 1.0f, 0.0f));
-		//DEBUGRENDERER2D->DrawSegment
 	}
 	
 	return steering;
@@ -157,5 +153,134 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 
 SteeringOutput Wander::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 {
-	return SteeringOutput();
+	SteeringOutput steering{};
+	// Pick a point at x distance in front of the agent.
+	// In a radius around that point, pick a random point/angle on that circle, of which the edge is the target of the agent.
+	// Can also use random offset to change that point.
+
+	// Get the point at offsetdistance in front of the agent
+	const Elite::Vector2 offsetPoint(pAgent->GetPosition() + (m_OffsetDistance * pAgent->GetDirection()));
+
+	// Get a random wander angle (* 100 for floating precision, * 2 to include negative range, - max angle to shift 0 to lowest negative)
+	//m_WanderAngle += (rand() % int(m_MaxAngleChange * 100.0f * 2.0f) / 100.0f) - m_MaxAngleChange;
+	m_WanderAngle += Elite::randomFloat(-m_MaxAngleChange, m_MaxAngleChange);
+
+	// Get the point of the angle on the circle
+	// (offSetPoint + (Radius * Angle)
+	const Elite::Vector2 wanderTarget{ offsetPoint + Elite::Vector2(m_Radius * cosf(m_WanderAngle), m_Radius * sinf(m_WanderAngle))};
+
+
+
+	if (pAgent->CanRenderBehavior())
+	{
+		DEBUGRENDERER2D->DrawCircle(offsetPoint, m_Radius, Elite::Color(0.0f, 0.0f, 1.0f), 0.0f);
+		DEBUGRENDERER2D->DrawSegment(pAgent->GetPosition(), wanderTarget, Elite::Color(1.0f, 0.0f, 0.0f));
+		DEBUGRENDERER2D->DrawPoint(offsetPoint, 5.0f, Elite::Color(0.0f, 0.0f, 1.0f), 0.0f);
+		DEBUGRENDERER2D->DrawPoint(wanderTarget, 5.0f, Elite::Color(0.0f, 1.0f, 1.0f), 0.0f);
+	}
+
+	m_Target.Position = wanderTarget;
+
+	return Seek::CalculateSteering(deltaT, pAgent);
+}
+
+SteeringOutput Pursuit::CalculateSteering(float deltaT, SteeringAgent* pAgent)
+{
+	// Calculate intercept target
+	// How far is target agent & what is it's velocity?
+
+	SteeringOutput steering{};
+
+	// Check how our path can interset with target path over time, based on our max linear velocity, target is point where target path and our suggested path interesect
+	// I will do this itteratively, by first getting the amount of time it would take to get to the target in standstill, use this as a baseline, and then use that time to calculate
+	// Where the target will be based on it's current speed.
+	//Elite::Vector2 newTargetPosition{ m_Target.Position };
+	//Elite::Vector2 vectorToTarget{};
+	//float timeToTarget{};
+
+	//// Calc time it takes to reach target.
+	//vectorToTarget = m_Target.Position - pAgent->GetPosition();
+	//timeToTarget = vectorToTarget.MagnitudeSquared() / pAgent->GetLinearVelocity().MagnitudeSquared();
+	//newTargetPosition = m_Target.Position + (m_Target.LinearVelocity * timeToTarget);
+
+	//vectorToTarget = newTargetPosition - pAgent->GetPosition();
+
+
+	//// Go to the new target
+	//steering.LinearVelocity = vectorToTarget;
+	//steering.LinearVelocity.Normalize();  // Normalize the direction
+	//steering.LinearVelocity *= pAgent->GetMaxLinearSpeed(); // Multiple the direction with the speed
+		// Draw DEBUG visualization
+	//if (pAgent->CanRenderBehavior())
+	//{
+	//	std::string position{ std::to_string(pAgent->GetPosition().x) + ", " + std::to_string(pAgent->GetPosition().y) };
+	//	DEBUGRENDERER2D->DrawString(Elite::Vector2(2, 2), position.c_str());
+	//	DEBUGRENDERER2D->DrawDirection(pAgent->GetPosition(), steering.LinearVelocity, 5.0f, Elite::Color(0.0f, 1.0f, 0.0f));
+	//	DEBUGRENDERER2D->DrawDirection(pAgent->GetPosition(), vectorToTarget, 5.0f, Elite::Color(0.0f, 1.0f, 0.0f));
+	//	DEBUGRENDERER2D->DrawDirection(m_Target.Position, m_Target.LinearVelocity, timeToTarget * m_Target.LinearVelocity.Magnitude(), Elite::Color(0.0f, 1.0f, 0.0f));
+	//}
+
+	// New idea using pythagoras stuff (speed not taken into account, only direction)
+
+	// Vector to the target
+	Elite::Vector2 vectorToTarget( m_Target.Position - pAgent->GetPosition() );
+
+	// Ratio between our linear speed & target linear speed
+	//const float velRatio{ m_Target.LinearVelocity.MagnitudeSquared() / Elite::Square(pAgent->GetMaxLinearSpeed())};
+	const float velRatio{ 1.0f };
+
+	// Angle between the direction vectors
+	float angleBetween{ abs(Elite::ToDegrees(Elite::AngleBetween(m_Target.LinearVelocity, vectorToTarget)))};
+
+	if (angleBetween > 90.0f)
+	{
+		angleBetween = 180.0f - 90.0f;
+	}
+
+	// Caclulate "A" distance offset for target
+	const float targetOffset{ cosf(Elite::ToRadians(angleBetween)) * vectorToTarget.Magnitude() * velRatio };
+	
+	const Elite::Vector2 targetOffsetPoint{ m_Target.Position +  (targetOffset * m_Target.LinearVelocity.GetNormalized()) };
+	vectorToTarget = targetOffsetPoint - pAgent->GetPosition();
+
+	steering.LinearVelocity = vectorToTarget;
+	steering.LinearVelocity.Normalize();  // Normalize the direction
+	steering.LinearVelocity *= pAgent->GetMaxLinearSpeed(); // Multiple the direction with the speed
+
+	if (pAgent->CanRenderBehavior())
+	{
+		DEBUGRENDERER2D->DrawSegment(pAgent->GetPosition(), targetOffsetPoint, Elite::Color(1.0f, 0.0f, 0.0f));
+	}
+	return steering;
+}
+
+SteeringOutput Evade::CalculateSteering(float deltaT, SteeringAgent* pAgent)
+{
+	// Tries to evade the path of the target	
+	
+
+	// Get the vector to the target to compare with
+	const Elite::Vector2 targetVector{ m_Target.Position - pAgent->GetPosition() };
+	
+	// Get the direction of the target and calculate where it will be in the future
+	const Elite::Vector2 targetDirection{ m_Target.LinearVelocity * m_LookAheadSeconds };
+	Elite::Vector2 targetFuturePosition{ m_Target.Position + targetDirection };
+	
+	// Shorten the future calculation if the future position is closer than the current distance
+	const float ratio{ targetVector.MagnitudeSquared() / targetDirection.MagnitudeSquared() };
+	if (ratio < 1.2f)
+	{
+		// Target is too close (flee directly from the current targets position and abandon all hope)
+		targetFuturePosition = m_Target.Position;
+	}
+
+	if (pAgent->CanRenderBehavior())
+	{
+		DEBUGRENDERER2D->DrawSegment(m_Target.Position, targetFuturePosition, Elite::Color(1.0f, 1.0f, 0.0f), 0.0f);
+		DEBUGRENDERER2D->DrawPoint(targetFuturePosition, 5.0f, Elite::Color(0.0f, 0.67f, 1.0f), 0.0f);
+	}
+
+	m_Target.Position = targetFuturePosition;
+	return Flee::CalculateSteering(deltaT, pAgent);
+
 }
