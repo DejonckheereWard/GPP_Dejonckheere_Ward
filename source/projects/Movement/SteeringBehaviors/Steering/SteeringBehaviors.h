@@ -138,7 +138,7 @@ public:
 	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
 
 protected:
-	float m_LookAheadSeconds{ 3.0f };  // Constant in seconds determining how far the targets path is calculated.
+	float m_LookAheadSeconds{ 1.0f };  // Constant in seconds determining how far the targets path is calculated.
 
 
 };
