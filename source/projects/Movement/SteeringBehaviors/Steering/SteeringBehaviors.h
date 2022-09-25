@@ -111,6 +111,19 @@ protected:
 };
 
 
+///////////////////////////////////////
+//Pursuit
+//****
+class Pursuit : public ISteeringBehavior
+{
+public:
+	Pursuit() = default;
+	virtual ~Pursuit() = default;
+
+	//Seek Behaviour
+	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
+};
+
 #endif
 
 
