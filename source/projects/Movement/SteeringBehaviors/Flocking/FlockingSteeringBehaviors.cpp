@@ -33,7 +33,7 @@ SteeringOutput Cohesion::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 		
 		for (size_t neighborIndex{}; neighborIndex < neighborCount; neighborIndex++)
 		{
-			DEBUGRENDERER2D->DrawCircle(pAgent->GetPosition(), 15.0f, Elite::Color(0.1f, 0.9f, 0.1f), 0.0f);
+			DEBUGRENDERER2D->DrawCircle(pAgent->GetPosition(), m_pFlock->GetNeighborhoodRadius(), Elite::Color(0.1f, 0.9f, 0.1f), 0.0f);
 			DEBUGRENDERER2D->DrawCircle(neighbors[neighborIndex]->GetPosition(), pAgent->GetRadius(), Elite::Color(0.0f, 0.67f, 1.0f), 0.0f);
 		}
 	}

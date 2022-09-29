@@ -18,7 +18,7 @@ Flock::Flock(
 	, m_FlockSize{ flockSize }
 	, m_TrimWorld{ trimWorld }
 	, m_pAgentToEvade{ pAgentToEvade }
-	, m_NeighborhoodRadius{ 15 }
+	, m_NeighborhoodRadius{ 10 }
 	, m_NrOfNeighbors{ 0 }
 {
 	m_Agents.resize(m_FlockSize);
@@ -129,6 +129,18 @@ void Flock::UpdateAndRenderUI()
 	ImGui::Spacing();
 
 	// TODO: Implement checkboxes for debug rendering and weight sliders here
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	ImGui::Checkbox("Debug Rendering", &m_CanDebugRender);
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::SliderFloat("Cohesion", &m_pBlendedSteering->GetWeightedBehaviorsRef()[0].weight, 0.f, 1.f, "%.2");
+	ImGui::SliderFloat("Seperation", &m_pBlendedSteering->GetWeightedBehaviorsRef()[1].weight, 0.f, 1.f, "%.2");
+	ImGui::SliderFloat("Velocity Match", &m_pBlendedSteering->GetWeightedBehaviorsRef()[2].weight, 0.f, 1.f, "%.2");
+	ImGui::SliderFloat("Seek", &m_pBlendedSteering->GetWeightedBehaviorsRef()[3].weight, 0.f, 1.f, "%.2");
+	ImGui::SliderFloat("Wander", &m_pBlendedSteering->GetWeightedBehaviorsRef()[4].weight, 0.f, 1.f, "%.2");
 
 	//End
 	ImGui::PopAllowKeyboardFocus();
@@ -230,7 +242,7 @@ void Flock::InitializeFlock()
 		{m_pCohesionBehavior, 0.4f},
 		{m_pSeparationBehavior, 0.3f},
 		{m_pVelMatchBehavior, 0.2f},
-		{m_pSeekBehavior, 0.2f},
+		{m_pSeekBehavior, 0.01f},
 		{m_pWanderBehavior, 0.7f}
 	});
 	m_pPrioritySteering = new PrioritySteering({ m_pEvadeBehavior, m_pBlendedSteering });

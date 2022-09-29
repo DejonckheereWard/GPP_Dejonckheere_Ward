@@ -28,6 +28,8 @@ public:
 
 	Elite::Vector2 GetAverageNeighborPos() const;
 	Elite::Vector2 GetAverageNeighborVelocity() const;
+	
+	float GetNeighborhoodRadius() const { return m_NeighborhoodRadius; }
 
 	void SetTarget_Seek(TargetData target);
 	void SetWorldTrimSize(float size) { m_WorldSize = size; }
@@ -41,6 +43,8 @@ private:
 	bool m_TrimWorld = false;
 	float m_WorldSize = 0.f;
 
+	bool m_CanDebugRender{ false };
+	
 	float m_NeighborhoodRadius = 10.f;
 	int m_NrOfNeighbors = 0;
 
