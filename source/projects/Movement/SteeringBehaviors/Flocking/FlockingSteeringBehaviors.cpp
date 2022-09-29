@@ -88,5 +88,14 @@ SteeringOutput Separation::CalculateSteering(float deltaT, SteeringAgent* pAgent
 
 SteeringOutput VelocityMatch::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 {
-	return SteeringOutput();
+
+	// Get the average velocity of the neighbors
+	const Elite::Vector2 averageVelocity{ m_pFlock->GetAverageNeighborVelocity() };
+
+	// Set our target to a point offset using this average velocity
+	m_Target.Position = pAgent->GetPosition() + averageVelocity;
+
+
+	SteeringOutput steering{ Seek::CalculateSteering(deltaT, pAgent) };
+	return steering;
 }
