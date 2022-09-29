@@ -12,7 +12,7 @@ void SteeringAgent::Update(float dt)
 		//***************
 		auto linVel = GetLinearVelocity();
 		auto steeringForce = output.LinearVelocity - linVel;
-		auto acceleration = steeringForce / GetMass();
+		auto acceleration = steeringForce / GetMass();		
 
 		if(m_RenderBehavior)
 		{
@@ -25,7 +25,7 @@ void SteeringAgent::Update(float dt)
 		//****************
 		if(m_AutoOrient)
 		{
-			auto desiredOrientation = Elite::GetOrientationFromVelocity(GetLinearVelocity());
+			auto desiredOrientation = Elite::VectorToOrientation(GetLinearVelocity());
 			SetRotation(desiredOrientation);
 		}
 		else
