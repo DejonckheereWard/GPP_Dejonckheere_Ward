@@ -101,6 +101,7 @@ public:
 
 	//Wander Behaviour
 	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
+	void SetWanderOffset(float offset) { m_OffsetDistance = offset; };
 
 protected:
 	float m_OffsetDistance{ 6.0f };  // Distance in front of the agent to set the wander circle
@@ -136,9 +137,13 @@ public:
 
 	//Evade Behaviour
 	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
+	
+	void SetEvadeRadius(float evadeRadius) { m_EvadeRadius = evadeRadius; };
+	
 
 protected:
 	float m_LookAheadSeconds{ 1.0f };  // Constant in seconds determining how far the targets path is calculated.
+	float m_EvadeRadius = 20.0f;
 
 
 };

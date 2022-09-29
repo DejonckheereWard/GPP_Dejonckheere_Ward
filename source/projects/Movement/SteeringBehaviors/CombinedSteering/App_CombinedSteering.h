@@ -34,5 +34,21 @@ private:
 	bool m_CanDebugRender = false;
 	bool m_TrimWorld = true;
 	float m_TrimWorldSize = 25.f;
+
+	SteeringAgent* m_pDrunkAgent = nullptr;
+	SteeringAgent* m_pEvadingAgent = nullptr;
+	
+	// Blended steering
+	BlendedSteering* m_pBlendedSteering = nullptr;
+	Wander* m_pDrunkWander = nullptr;
+	Seek* m_pSeek = nullptr;
+
+
+	// Priority Steering
+	PrioritySteering* m_pPrioritySteering = nullptr;
+	Wander* m_pSoberWander = nullptr;
+	Evade* m_pEvade = nullptr;
+
+	
 };
 #endif

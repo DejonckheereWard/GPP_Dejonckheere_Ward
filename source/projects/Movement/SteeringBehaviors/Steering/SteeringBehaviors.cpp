@@ -258,9 +258,17 @@ SteeringOutput Evade::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 {
 	// Tries to evade the path of the target	
 	
-
 	// Get the vector to the target to compare with
+	SteeringOutput steering{};
+	
 	const Elite::Vector2 targetVector{ m_Target.Position - pAgent->GetPosition() };
+	float distanceSquared{ targetVector.MagnitudeSquared() };
+	if (distanceSquared > Elite::Square(m_EvadeRadius))
+	{
+		// Return if too far to evade
+		steering.IsValid = false;
+		return steering;
+	}
 	
 	// Get the direction of the target and calculate where it will be in the future
 	const Elite::Vector2 targetDirection{ m_Target.LinearVelocity * m_LookAheadSeconds };
@@ -281,6 +289,7 @@ SteeringOutput Evade::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	}
 
 	m_Target.Position = targetFuturePosition;
-	return Flee::CalculateSteering(deltaT, pAgent);
+	steering = Flee::CalculateSteering(deltaT, pAgent);
+	return steering;
 
 }

@@ -10,13 +10,51 @@
 using namespace Elite;
 App_CombinedSteering::~App_CombinedSteering()
 {	
+	// Safe delete deletes if not nullptr & sets to nullptr
 
+	// Blended steering
+	SAFE_DELETE(m_pDrunkAgent);
+	SAFE_DELETE(m_pBlendedSteering);
+	SAFE_DELETE(m_pDrunkWander);
+	SAFE_DELETE(m_pSeek);
+
+	// Priority steering
+	SAFE_DELETE(m_pEvadingAgent);
+	SAFE_DELETE(m_pPrioritySteering);
+	SAFE_DELETE(m_pSoberWander);
+	SAFE_DELETE(m_pEvade);
 }
 
 void App_CombinedSteering::Start()
 {
 	DEBUGRENDERER2D->GetActiveCamera()->SetZoom(55.0f);
 	DEBUGRENDERER2D->GetActiveCamera()->SetCenter(Elite::Vector2(m_TrimWorldSize / 1.5f, m_TrimWorldSize / 2));
+
+
+	m_pSeek = new Seek();
+	m_pDrunkWander = new Wander();
+	
+	m_pDrunkWander->SetWanderOffset(0);
+	m_pBlendedSteering = new BlendedSteering({ {m_pSeek, 0.25f}, {m_pDrunkWander, 0.5f} });
+
+	m_pDrunkAgent = new SteeringAgent();
+	m_pDrunkAgent->SetSteeringBehavior(m_pBlendedSteering);
+	m_pDrunkAgent->SetMaxLinearSpeed(15.0f);
+	m_pDrunkAgent->SetAutoOrient(true);
+	m_pDrunkAgent->SetBodyColor({ 1, 0, 0 });
+	m_pDrunkAgent->SetMass(0.3f);
+	
+	m_pSoberWander = new Wander();
+	m_pEvade = new Evade();
+	m_pPrioritySteering = new PrioritySteering({ m_pEvade, m_pSoberWander });
+
+	m_pEvadingAgent = new SteeringAgent();
+	m_pEvadingAgent->SetSteeringBehavior(m_pPrioritySteering);
+	m_pEvadingAgent->SetMaxLinearSpeed(15.0f);
+	m_pEvadingAgent->SetAutoOrient(true);
+	m_pEvadingAgent->SetMass(0.3f);
+	
+
 }
 
 void App_CombinedSteering::Update(float deltaTime)
@@ -83,8 +121,8 @@ void App_CombinedSteering::Update(float deltaTime)
 		ImGui::Text("Behavior Weights");
 		ImGui::Spacing();
 		
-		//ImGui::SliderFloat("Seek", &m_pBlendedSteering->GetWeightedBehaviorsRef()[0].weight, 0.f, 1.f, "%.2");
-		//ImGui::SliderFloat("Wander", &m_pBlendedSteering->GetWeightedBehaviorsRef()[1].weight, 0.f, 1.f, "%.2");
+		ImGui::SliderFloat("Seek", &m_pBlendedSteering->GetWeightedBehaviorsRef()[0].weight, 0.f, 1.f, "%.2");
+		ImGui::SliderFloat("Wander", &m_pBlendedSteering->GetWeightedBehaviorsRef()[1].weight, 0.f, 1.f, "%.2");
 
 		//End
 		ImGui::PopAllowKeyboardFocus();
@@ -93,10 +131,29 @@ void App_CombinedSteering::Update(float deltaTime)
 	#pragma endregion
 #endif
 
+	m_pSeek->SetTarget(m_MouseTarget);
+	m_pDrunkAgent->Update(deltaTime);
+
+	TargetData evadeTarget;
+	evadeTarget.LinearVelocity = m_pDrunkAgent->GetLinearVelocity();
+	evadeTarget.Position = m_pDrunkAgent->GetPosition();
+	m_pEvade->SetTarget(evadeTarget);
+	m_pEvadingAgent->Update(deltaTime);
+
+	if (m_TrimWorld)
+	{
+		m_pDrunkAgent->TrimToWorld(m_TrimWorldSize);
+		m_pEvadingAgent->TrimToWorld(m_TrimWorldSize);
+	}
 }
 
 void App_CombinedSteering::Render(float deltaTime) const
 {
+	m_pDrunkAgent->Render(deltaTime);
+	m_pDrunkAgent->SetRenderBehavior(m_CanDebugRender);
+	
+	m_pEvadingAgent->Render(deltaTime);
+	m_pEvadingAgent->SetRenderBehavior(m_CanDebugRender);
 
 	if (m_TrimWorld)
 	{

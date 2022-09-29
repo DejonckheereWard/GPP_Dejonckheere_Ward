@@ -24,6 +24,9 @@
     <ClCompile Include="projects\Movement\SteeringBehaviors\SteeringAgent.cpp" />
     <ClCompile Include="projects\Movement\SteeringBehaviors\CombinedSteering\App_CombinedSteering.cpp" />
     <ClCompile Include="projects\Movement\SteeringBehaviors\CombinedSteering\CombinedSteeringBehaviors.cpp" />
+    <ClCompile Include="projects\Movement\SteeringBehaviors\Flocking\App_Flocking.cpp" />
+    <ClCompile Include="projects\Movement\SteeringBehaviors\Flocking\Flock.cpp" />
+    <ClCompile Include="projects\Movement\SteeringBehaviors\Flocking\FlockingSteeringBehaviors.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="projects\App_Selector.h" />
@@ -81,6 +84,9 @@
     <ClInclude Include="projects\Movement\SteeringBehaviors\SteeringHelpers.h" />
     <ClInclude Include="projects\Movement\SteeringBehaviors\CombinedSteering\App_CombinedSteering.h" />
     <ClInclude Include="projects\Movement\SteeringBehaviors\CombinedSteering\CombinedSteeringBehaviors.h" />
+    <ClInclude Include="projects\Movement\SteeringBehaviors\Flocking\App_Flocking.h" />
+    <ClInclude Include="projects\Movement\SteeringBehaviors\Flocking\Flock.h" />
+    <ClInclude Include="projects\Movement\SteeringBehaviors\Flocking\FlockingSteeringBehaviors.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
