@@ -36,6 +36,7 @@ Flock::~Flock()
 	SAFE_DELETE(m_pPrioritySteering);
 
 	SAFE_DELETE(m_pCohesionBehavior);
+	SAFE_DELETE(m_pSeparationBehavior);
 
 	for (SteeringAgent* pAgent : m_Agents)
 	{
@@ -207,9 +208,9 @@ void Flock::InitializeFlock()
 	// Initializes the all flock agents and gives them a position evenly on the grid
 
 	m_pCohesionBehavior = new Cohesion(this);
-	m_pSeperationBehavior = new Seperation(this);
+	m_pSeparationBehavior = new Separation(this);
 	
-	m_pBlendedSteering = new BlendedSteering({ {m_pCohesionBehavior, 0.5f} });
+	m_pBlendedSteering = new BlendedSteering({ {m_pSeparationBehavior, 0.5f} });
 	m_pPrioritySteering = new PrioritySteering({ m_pBlendedSteering });
 
 
@@ -250,7 +251,7 @@ void Flock::InitializeFlock()
 	}
 	
 	// Turn on debug for 1 agent
-	m_Agents[0]->SetRenderBehavior(true);
+	m_Agents[45]->SetRenderBehavior(true);
 
 
 }

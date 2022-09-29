@@ -18,7 +18,17 @@ private:
 
 //SEPARATION - FLOCKING
 //*********************
+class Separation : public Seek
+{
+public:
+	Separation(Flock* pFlock) :m_pFlock(pFlock) {};
 
+	//Cohesion Behavior
+	SteeringOutput CalculateSteering(float deltaT, SteeringAgent* pAgent) override;
+
+private:
+	Flock* m_pFlock = nullptr;
+};
 
 //VELOCITY MATCH - FLOCKING
 //************************

@@ -46,3 +46,47 @@ SteeringOutput Cohesion::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 
 //*************************
 //VELOCITY MATCH (FLOCKING)
+
+SteeringOutput Separation::CalculateSteering(float deltaT, SteeringAgent* pAgent)
+{
+	// Calculate inverse proportional magnitude vector to each neighbor
+	// Take the average vector of all found neighbors and set that as seek point
+	
+	// Get the neighbors & amount of neighbors
+	const std::vector<SteeringAgent*> neighbors{ m_pFlock->GetNeighbors() };
+	const size_t neighborCount{ size_t(m_pFlock->GetNrOfNeighbors()) };
+	
+	// Vector to store total inverse proportional magnitude vector
+	Elite::Vector2 totalInverseProportionalMagnitudeVector{};
+	
+	
+	for (size_t neighborIndex{}; neighborIndex < neighborCount; neighborIndex++)
+	{
+		// Get the distance to the neighbor
+		const float distanceSqr{ (pAgent->GetPosition() - neighbors[neighborIndex]->GetPosition()).MagnitudeSquared() };
+
+		// Get the inverse proportional magnitude vector
+		const Elite::Vector2 inverseProportionalMagnitude{ (pAgent->GetPosition() - neighbors[neighborIndex]->GetPosition()) / distanceSqr };
+
+		// Add the inverse proportional magnitude vector to the average vector
+		totalInverseProportionalMagnitudeVector += inverseProportionalMagnitude;
+	}
+	totalInverseProportionalMagnitudeVector /= float(neighborCount);
+
+	// Set the target to position + offset
+	m_Target.Position = pAgent->GetPosition() + totalInverseProportionalMagnitudeVector;
+	SteeringOutput steering{ Seek::CalculateSteering(deltaT, pAgent) };
+
+	// Show debug visuals if enabled
+	if (pAgent->CanRenderBehavior())
+	{
+		DEBUGRENDERER2D->DrawSegment(pAgent->GetPosition(), m_Target.Position, Elite::Color(0, 1, 1));
+	}
+	
+	return steering;
+}
+
+SteeringOutput VelocityMatch::CalculateSteering(float deltaT, SteeringAgent* pAgent)
+{
+	return SteeringOutput();
+}
