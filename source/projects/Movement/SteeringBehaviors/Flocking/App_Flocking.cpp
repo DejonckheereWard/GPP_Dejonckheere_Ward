@@ -13,6 +13,7 @@ App_Flocking::~App_Flocking()
 {	
 	SAFE_DELETE(m_pFlock);
 	SAFE_DELETE(m_pAgentToEvade);
+	SAFE_DELETE(m_pAgentToEvadeWander);
 }
 
 //Functions
@@ -20,6 +21,15 @@ void App_Flocking::Start()
 {
 	DEBUGRENDERER2D->GetActiveCamera()->SetZoom(55.0f);
 	DEBUGRENDERER2D->GetActiveCamera()->SetCenter(Elite::Vector2(m_TrimWorldSize / 1.5f, m_TrimWorldSize / 2));
+
+
+	m_pAgentToEvadeWander = new Wander();
+	m_pAgentToEvade = new SteeringAgent();
+	m_pAgentToEvade->SetSteeringBehavior(m_pAgentToEvadeWander);
+	m_pAgentToEvade->SetMaxLinearSpeed(15.0f);
+	m_pAgentToEvade->SetAutoOrient(true);
+	m_pAgentToEvade->SetBodyColor({ 1, 0, 0 });
+	m_pAgentToEvade->SetMass(0.3f);
 
 	m_pFlock = new Flock(m_FlockSize, m_TrimWorldSize, m_pAgentToEvade, true);
 }
@@ -35,8 +45,12 @@ void App_Flocking::Update(float deltaTime)
 
 	m_pFlock->UpdateAndRenderUI();
 	m_pFlock->Update(deltaTime);
+	m_pAgentToEvade->Update(deltaTime);
 	if (m_UseMouseTarget)
 		m_pFlock->SetTarget_Seek(m_MouseTarget);
+	
+	//if(m_TrimWorld)
+	m_pAgentToEvade->TrimToWorld(m_TrimWorldSize);
 }
 
 void App_Flocking::Render(float deltaTime) const
@@ -44,6 +58,7 @@ void App_Flocking::Render(float deltaTime) const
 	RenderWorldBounds(m_TrimWorldSize);
 
 	m_pFlock->Render(deltaTime);
+	m_pAgentToEvade->Render(deltaTime);
 
 	//Render Target
 	if(m_VisualizeMouseTarget)

@@ -37,6 +37,10 @@ Flock::~Flock()
 
 	SAFE_DELETE(m_pCohesionBehavior);
 	SAFE_DELETE(m_pSeparationBehavior);
+	SAFE_DELETE(m_pVelMatchBehavior);
+	SAFE_DELETE(m_pSeekBehavior);
+	SAFE_DELETE(m_pWanderBehavior);
+	SAFE_DELETE(m_pEvadeBehavior);
 
 	for (SteeringAgent* pAgent : m_Agents)
 	{
@@ -54,7 +58,14 @@ void Flock::Update(float deltaT)
 		// register its neighbors	(-> memory pool is filled with neighbors of the currently evaluated agent)
 		// update it				(-> the behaviors can use the neighbors stored in the pool, next iteration they will be the next agent's neighbors)
 		// trim it to the world
+	
+	TargetData evadeTarget{};
+	evadeTarget.Position = m_pAgentToEvade->GetPosition();
+	evadeTarget.LinearVelocity = m_pAgentToEvade->GetLinearVelocity();
+	evadeTarget.AngularVelocity = m_pAgentToEvade->GetAngularVelocity();
+	m_pEvadeBehavior->SetTarget(evadeTarget);
 
+	
 	// Loop over every agent
 	for (SteeringAgent* pAgent : m_Agents)
 	{
@@ -66,7 +77,6 @@ void Flock::Update(float deltaT)
 			// Trim the agent to the world
 			pAgent->TrimToWorld(m_WorldSize);
 		}
-
 	}
 
 }
@@ -179,6 +189,7 @@ Elite::Vector2 Flock::GetAverageNeighborVelocity() const
 void Flock::SetTarget_Seek(TargetData target)
 {
 	// TODO: Set target for seek behavior
+	m_pSeekBehavior->SetTarget(target);
 }
 
 
@@ -209,9 +220,20 @@ void Flock::InitializeFlock()
 
 	m_pCohesionBehavior = new Cohesion(this);
 	m_pSeparationBehavior = new Separation(this);
-	
-	m_pBlendedSteering = new BlendedSteering({ {m_pSeparationBehavior, 0.5f} });
-	m_pPrioritySteering = new PrioritySteering({ m_pBlendedSteering });
+	m_pVelMatchBehavior = new VelocityMatch(this);
+	m_pSeekBehavior = new Seek();
+	m_pWanderBehavior = new Wander();
+	m_pEvadeBehavior = new Evade();	
+	m_pEvadeBehavior->SetEvadeRadius(10.0f);
+
+	m_pBlendedSteering = new BlendedSteering({
+		{m_pCohesionBehavior, 0.4f},
+		{m_pSeparationBehavior, 0.3f},
+		{m_pVelMatchBehavior, 0.2f},
+		{m_pSeekBehavior, 0.2f},
+		{m_pWanderBehavior, 0.7f}
+	});
+	m_pPrioritySteering = new PrioritySteering({ m_pEvadeBehavior, m_pBlendedSteering });
 
 
 	// Split up the view into grid and randomly assign an agent to that spot
@@ -226,8 +248,8 @@ void Flock::InitializeFlock()
 			if (agentIndex >= m_FlockSize) break;  // Stop the function when enough are created
 			std::cout << agentIndex << "\n";
 
-			
-			
+
+
 			// Calc position (+ random to have some randomizations)
 			const float x = ((float(columnIndex) + Elite::randomFloat(0.1f, 0.9f)) / float(gridSize)) * m_WorldSize;
 			const float y = ((float(rowIndex) + Elite::randomFloat(0.1f, 0.9f)) / float(gridSize)) * m_WorldSize;
@@ -240,16 +262,16 @@ void Flock::InitializeFlock()
 			pAgent->SetSteeringBehavior(m_pPrioritySteering);
 			pAgent->SetMaxLinearSpeed(15.0f);
 			pAgent->SetAutoOrient(true);
-			pAgent->SetBodyColor({ 1, 0, 0, 0 });
+			//pAgent->SetBodyColor({ 1, 0, 0, 0 });
 			pAgent->SetMass(0.3f);
-			
+
 
 			// Add to flock pool
 			m_Agents[agentIndex] = pAgent;
 
 		}
 	}
-	
+
 	// Turn on debug for 1 agent
 	m_Agents[45]->SetRenderBehavior(true);
 

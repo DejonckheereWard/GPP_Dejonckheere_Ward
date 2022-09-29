@@ -36,6 +36,8 @@ private:
 	Flock* m_pFlock = nullptr;
 	SteeringAgent* m_pAgentToEvade = nullptr;
 
+	Wander* m_pAgentToEvadeWander = nullptr;
+
 	//C++ make the class non-copyable
 	App_Flocking(const App_Flocking&) = delete;
 	App_Flocking& operator=(const App_Flocking&) = delete;
