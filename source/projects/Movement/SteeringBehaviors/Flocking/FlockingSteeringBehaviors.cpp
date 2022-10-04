@@ -63,10 +63,10 @@ SteeringOutput Separation::CalculateSteering(float deltaT, SteeringAgent* pAgent
 	for (size_t neighborIndex{}; neighborIndex < neighborCount; neighborIndex++)
 	{
 		// Get the distance to the neighbor
-		const float distanceSqr{ (pAgent->GetPosition() - neighbors[neighborIndex]->GetPosition()).MagnitudeSquared() };
+		const float distance{ (pAgent->GetPosition() - neighbors[neighborIndex]->GetPosition()).Magnitude()};
 
 		// Get the inverse proportional magnitude vector
-		const Elite::Vector2 inverseProportionalMagnitude{ (pAgent->GetPosition() - neighbors[neighborIndex]->GetPosition()) / distanceSqr };
+		const Elite::Vector2 inverseProportionalMagnitude{ (pAgent->GetPosition() - neighbors[neighborIndex]->GetPosition()) / distance };
 
 		// Add the inverse proportional magnitude vector to the average vector
 		totalInverseProportionalMagnitudeVector += inverseProportionalMagnitude;
