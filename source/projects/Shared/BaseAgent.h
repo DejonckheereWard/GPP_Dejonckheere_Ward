@@ -16,7 +16,9 @@ public:
 
 	//Get - Set
 	Elite::Vector2 GetPosition() const { return m_pRigidBody->GetPosition(); }
+	Elite::Vector2 GetOldPosition() const { return m_OldPosition; }
 	void SetPosition(const Elite::Vector2& pos) const { m_pRigidBody->SetPosition(pos); }
+	void SetOldPosition(const Elite::Vector2& pos) { m_OldPosition = pos; }
 
 	float GetRotation() const {
 		return Elite::ClampedAngle(m_pRigidBody->GetRotation().x);}
@@ -49,5 +51,7 @@ private:
 	//C++ make the class non-copyable
 	BaseAgent(const BaseAgent&) {};
 	BaseAgent& operator=(const BaseAgent&) {};
+
+	Elite::Vector2 m_OldPosition;
 };
 #endif
