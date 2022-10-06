@@ -4,6 +4,7 @@
 #include "../SteeringAgent.h"
 #include "../Steering/SteeringBehaviors.h"
 #include "../CombinedSteering/CombinedSteeringBehaviors.h"
+#include "../SpacePartitioning/SpacePartitioning.h"
 
 using namespace Elite;
 
@@ -18,8 +19,9 @@ Flock::Flock(
 	, m_FlockSize{ flockSize }
 	, m_TrimWorld{ trimWorld }
 	, m_pAgentToEvade{ pAgentToEvade }
-	, m_NeighborhoodRadius{ 10 }
+	, m_NeighborhoodRadius{ 15.0f }
 	, m_NrOfNeighbors{ 0 }
+	, m_pCellSpace{ new CellSpace(worldSize, worldSize, 100,100, flockSize) }
 {
 	m_Agents.resize(m_FlockSize);
 
@@ -49,6 +51,8 @@ Flock::~Flock()
 	m_Agents.clear();
 	m_Neighbors.clear();
 	m_NrOfNeighbors = 0;
+
+	SAFE_DELETE(m_pCellSpace);
 }
 
 void Flock::Update(float deltaT)
@@ -58,20 +62,27 @@ void Flock::Update(float deltaT)
 		// register its neighbors	(-> memory pool is filled with neighbors of the currently evaluated agent)
 		// update it				(-> the behaviors can use the neighbors stored in the pool, next iteration they will be the next agent's neighbors)
 		// trim it to the world
-	
 	TargetData evadeTarget{};
 	evadeTarget.Position = m_pAgentToEvade->GetPosition();
 	evadeTarget.LinearVelocity = m_pAgentToEvade->GetLinearVelocity();
 	evadeTarget.AngularVelocity = m_pAgentToEvade->GetAngularVelocity();
-	m_pEvadeBehavior->SetTarget(evadeTarget);
 
-	
+
 	// Loop over every agent
 	for (SteeringAgent* pAgent : m_Agents)
 	{
+		m_pEvadeBehavior->SetTarget(evadeTarget);
 		// Register every neighbour
+
+		// Check if agent moved to new cell
+		m_pCellSpace->UpdateAgentCell(pAgent);
+		if(m_UseSpacePartitioning) 
+			m_pCellSpace->RegisterNeighbors(pAgent, m_NeighborhoodRadius);
 		RegisterNeighbors(pAgent);
 		pAgent->Update(deltaT);
+		pAgent->SetOldPosition(pAgent->GetPosition());
+
+
 		if (m_TrimWorld)
 		{
 			// Trim the agent to the world
@@ -84,10 +95,59 @@ void Flock::Update(float deltaT)
 void Flock::Render(float deltaT)
 {
 	// TODO: render the flock
-	for (SteeringAgent* pAgent : m_Agents)
+	if (m_RenderAgents)
 	{
-		pAgent->Render(deltaT);
+		for (SteeringAgent* pAgent : m_Agents)
+		{
+			pAgent->Render(deltaT);
+		}
 	}
+
+	if (m_CanDebugRender)
+	{
+		m_pCellSpace->RenderCells();
+		const Elite::Color boundingBoxColor{ Elite::Color(1.0f, 0.67f, 0.0f) }; // Orange?
+		const Elite::Color neighborhoodRadiusColor{ Elite::Color(0.1f, 0.9f, 0.1f) }; // Green?
+		const Elite::Color neighborHighlightColor{ Elite::Color(0.0f, 0.67f, 1.0f) }; // Blue?
+
+		// Get the neigbors of agent 0
+		// Render neighbors of agent 0
+		// Show all neighbors in the flock
+		// Get the neighbors & amount of neighbors
+		SteeringAgent* agentToDebug{ m_Agents[0] };
+
+		m_pCellSpace->RegisterNeighbors(agentToDebug, m_NeighborhoodRadius);
+		RegisterNeighbors(agentToDebug);
+		const std::vector<SteeringAgent*> neighbors{ GetNeighbors() };
+		const size_t neighborCount{ size_t(GetNrOfNeighbors()) };
+
+		// Draw the bounding box
+		if (m_UseSpacePartitioning)
+		{
+			std::vector<Elite::Vector2> boundingBoxPoints{};
+			const Elite::Vector2 agentPos{ agentToDebug->GetPosition() };
+			boundingBoxPoints.push_back({ agentPos.x - m_NeighborhoodRadius, agentPos.y - m_NeighborhoodRadius });
+			boundingBoxPoints.push_back({ agentPos.x - m_NeighborhoodRadius, agentPos.y + m_NeighborhoodRadius });
+			boundingBoxPoints.push_back({ agentPos.x + m_NeighborhoodRadius, agentPos.y + m_NeighborhoodRadius });
+			boundingBoxPoints.push_back({ agentPos.x + m_NeighborhoodRadius, agentPos.y - m_NeighborhoodRadius });
+			Elite::Polygon boundingBox{ boundingBoxPoints };
+			DEBUGRENDERER2D->DrawPolygon(&boundingBox, boundingBoxColor);
+
+			// Draw active neighbor cells for the given agent
+			m_pCellSpace->RenderActiveCells();
+		}
+
+		// Draw neighborhoodradius
+		DEBUGRENDERER2D->DrawCircle(agentToDebug->GetPosition(), GetNeighborhoodRadius(), neighborhoodRadiusColor, 0.0f);
+		for (size_t neighborIndex{}; neighborIndex < neighborCount; neighborIndex++)
+		{
+			// Highlight the neighbors 
+			DEBUGRENDERER2D->DrawCircle(neighbors[neighborIndex]->GetPosition(), agentToDebug->GetRadius(), neighborHighlightColor, 0.0f);
+
+		}
+	}
+
+
 }
 
 void Flock::UpdateAndRenderUI()
@@ -134,6 +194,8 @@ void Flock::UpdateAndRenderUI()
 
 	ImGui::Checkbox("Debug Rendering", &m_CanDebugRender);
 	ImGui::Spacing();
+	ImGui::Checkbox("Spatial Partitioning", &m_UseSpacePartitioning);
+	ImGui::Spacing();
 	ImGui::Spacing();
 	ImGui::Spacing();
 	ImGui::SliderFloat("Cohesion", &m_pBlendedSteering->GetWeightedBehaviorsRef()[0].weight, 0.f, 1.f, "%.2");
@@ -153,21 +215,25 @@ void Flock::RegisterNeighbors(SteeringAgent* pAgent)
 	// Reset neighbours to 0 before adding new ones
 	m_NrOfNeighbors = 0;
 
-	for (SteeringAgent* pOtherAgent : m_Agents)
+
+	const std::vector<SteeringAgent*>& agentList{ m_UseSpacePartitioning ? m_pCellSpace->GetNeighbors() : m_Agents };
+	const size_t agentAmount{ m_UseSpacePartitioning ? m_pCellSpace->GetNrOfNeighbors() : m_Agents.size() };
+
+	for (size_t agentIndex{}; agentIndex < agentAmount; ++agentIndex)
 	{
 		// Check if not self
-		if (pAgent == pOtherAgent)
+		if (pAgent == agentList[agentIndex])
 			continue;
 
 		// Check distance from pAgent & other agent
 		// Keep it squared for performance
-		const float distance = DistanceSquared(pAgent->GetPosition(), pOtherAgent->GetPosition());
+		const float distance = DistanceSquared(pAgent->GetPosition(), agentList[agentIndex]->GetPosition());
 
 		// Check if distance within squared neighbour radius
 		if (distance < m_NeighborhoodRadius * m_NeighborhoodRadius)
 		{
 			// Add to memory pool
-			m_Neighbors[m_NrOfNeighbors] = pOtherAgent;
+			m_Neighbors[m_NrOfNeighbors] = agentList[agentIndex];
 			++m_NrOfNeighbors;
 		}
 	}
@@ -235,8 +301,8 @@ void Flock::InitializeFlock()
 	m_pVelMatchBehavior = new VelocityMatch(this);
 	m_pSeekBehavior = new Seek();
 	m_pWanderBehavior = new Wander();
-	m_pEvadeBehavior = new Evade();	
-	m_pEvadeBehavior->SetEvadeRadius(10.0f);
+	m_pEvadeBehavior = new Evade();
+	m_pEvadeBehavior->SetEvadeRadius(50.0f);
 
 	m_pBlendedSteering = new BlendedSteering({
 		{m_pCohesionBehavior, 0.4f},
@@ -244,7 +310,7 @@ void Flock::InitializeFlock()
 		{m_pVelMatchBehavior, 0.2f},
 		{m_pSeekBehavior, 0.01f},
 		{m_pWanderBehavior, 0.7f}
-	});
+		});
 	m_pPrioritySteering = new PrioritySteering({ m_pEvadeBehavior, m_pBlendedSteering });
 
 
@@ -272,20 +338,21 @@ void Flock::InitializeFlock()
 			// Set position & init other agent variables
 			pAgent->SetPosition(Elite::Vector2{ x, y });
 			pAgent->SetSteeringBehavior(m_pPrioritySteering);
-			pAgent->SetMaxLinearSpeed(15.0f);
+			pAgent->SetMaxLinearSpeed(55.0f);
+			pAgent->SetMaxAngularSpeed(25.0f);
 			pAgent->SetAutoOrient(true);
-			//pAgent->SetBodyColor({ 1, 0, 0, 0 });
-			pAgent->SetMass(0.3f);
+			pAgent->SetMass(1.0f);
 
 
 			// Add to flock pool
 			m_Agents[agentIndex] = pAgent;
 
+			// Add agent to the partitioning cells
+			m_pCellSpace->AddAgent(pAgent);
+
 		}
 	}
 
-	// Turn on debug for 1 agent
-	m_Agents[45]->SetRenderBehavior(true);
 
 
 }

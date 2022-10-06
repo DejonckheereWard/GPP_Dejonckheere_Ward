@@ -275,14 +275,14 @@ SteeringOutput Evade::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	Elite::Vector2 targetFuturePosition{ m_Target.Position + targetDirection };
 	
 	// Shorten the future calculation if the future position is closer than the current distance
-	const float ratio{ targetVector.MagnitudeSquared() / targetDirection.MagnitudeSquared() };
-	if (ratio < 1.2f)
-	{
-		// Target is too close (flee directly from the current targets position and abandon all hope)
-		targetFuturePosition = m_Target.Position;
-	}
+	//const float ratio{ targetVector.MagnitudeSquared() / targetDirection.MagnitudeSquared() };
+	//if (ratio < 1.2f)
+	//{
+	//	// Target is too close (flee directly from the current targets position and abandon all hope)
+	//	targetFuturePosition = m_Target.Position;
+	//}
 
-	if (pAgent->CanRenderBehavior())
+	if (pAgent->CanRenderBehavior() || true)
 	{
 		DEBUGRENDERER2D->DrawSegment(m_Target.Position, targetFuturePosition, Elite::Color(1.0f, 1.0f, 0.0f), 0.0f);
 		DEBUGRENDERER2D->DrawPoint(targetFuturePosition, 5.0f, Elite::Color(0.0f, 0.67f, 1.0f), 0.0f);

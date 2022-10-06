@@ -26,10 +26,12 @@ void App_Flocking::Start()
 	m_pAgentToEvadeWander = new Wander();
 	m_pAgentToEvade = new SteeringAgent();
 	m_pAgentToEvade->SetSteeringBehavior(m_pAgentToEvadeWander);
-	m_pAgentToEvade->SetMaxLinearSpeed(15.0f);
+	m_pAgentToEvade->SetMaxLinearSpeed(55.0f);
+	m_pAgentToEvade->SetMaxAngularSpeed(25.0f);
 	m_pAgentToEvade->SetAutoOrient(true);
 	m_pAgentToEvade->SetBodyColor({ 1, 0, 0 });
-	m_pAgentToEvade->SetMass(0.3f);
+	m_pAgentToEvade->SetMass(1.0f);
+	m_pAgentToEvade->SetRenderBehavior(true);
 
 	m_pFlock = new Flock(m_FlockSize, m_TrimWorldSize, m_pAgentToEvade, true);
 }
@@ -59,7 +61,7 @@ void App_Flocking::Render(float deltaTime) const
 	RenderWorldBounds(m_TrimWorldSize);
 
 	m_pFlock->Render(deltaTime);
-	m_pAgentToEvade->Render(deltaTime);
+	//m_pAgentToEvade->Render(deltaTime);
 
 	//Render Target
 	if(m_VisualizeMouseTarget)

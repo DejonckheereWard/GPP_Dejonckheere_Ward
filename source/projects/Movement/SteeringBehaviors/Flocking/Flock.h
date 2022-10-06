@@ -6,6 +6,7 @@ class ISteeringBehavior;
 class SteeringAgent;
 class BlendedSteering;
 class PrioritySteering;
+class CellSpace;
 
 class Flock final
 {
@@ -37,6 +38,7 @@ public:
 private:
 	//Datamembers
 	int m_FlockSize = 0;
+	
 	std::vector<SteeringAgent*> m_Agents;
 	std::vector<SteeringAgent*> m_Neighbors;
 
@@ -44,6 +46,8 @@ private:
 	float m_WorldSize = 0.f;
 
 	bool m_CanDebugRender{ false };
+	bool m_RenderAgents{ false };
+	bool m_UseSpacePartitioning{ true };
 	
 	float m_NeighborhoodRadius = 10.f;
 	int m_NrOfNeighbors = 0;
@@ -60,6 +64,9 @@ private:
 
 	BlendedSteering* m_pBlendedSteering = nullptr;
 	PrioritySteering* m_pPrioritySteering = nullptr;
+
+	// Cellspace
+	CellSpace* m_pCellSpace;
 
 	float* GetWeight(ISteeringBehavior* pBehaviour);
 
