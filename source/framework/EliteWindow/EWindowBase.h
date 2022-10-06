@@ -16,8 +16,8 @@ namespace Elite
 	struct WindowParams
 	{
 		std::string windowTitle = "AI Elite Framework";
-		unsigned int width = 901;
-		unsigned int height = 451;
+		unsigned int width = 1280;
+		unsigned int height = 720;
 		bool isResizable = false;
 	};
 
