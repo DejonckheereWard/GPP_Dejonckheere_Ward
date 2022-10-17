@@ -66,15 +66,14 @@ SteeringOutput Separation::CalculateSteering(float deltaT, SteeringAgent* pAgent
 
 	// Set the target to position + offset
 	m_Target.Position = pAgent->GetPosition() + totalInverseProportionalMagnitudeVector;
-	SteeringOutput steering{ Seek::CalculateSteering(deltaT, pAgent) };
-
+	
 	// Show debug visuals if enabled
 	if (pAgent->CanRenderBehavior())
 	{
 		DEBUGRENDERER2D->DrawSegment(pAgent->GetPosition(), m_Target.Position, Elite::Color(1, 0, 0));
 	}
 	
-	return steering;
+	return Seek::CalculateSteering(deltaT, pAgent);
 }
 
 SteeringOutput VelocityMatch::CalculateSteering(float deltaT, SteeringAgent* pAgent)

@@ -115,7 +115,7 @@ protected:
 ///////////////////////////////////////
 //Pursuit
 //****
-class Pursuit : public ISteeringBehavior
+class Pursuit : public Seek
 {
 public:
 	Pursuit() = default;
@@ -142,10 +142,9 @@ public:
 	
 
 protected:
-	float m_LookAheadSeconds{ 1.0f };  // Constant in seconds determining how far the targets path is calculated.
 	float m_EvadeRadius = 20.0f;
 
-
+	
 };
 
 #endif

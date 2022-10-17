@@ -53,6 +53,9 @@ public:
 	void RenderCells() const;
 	void RenderActiveCells() const;
 
+	void SetDrawCellAgentCount(bool value) { m_DrawCellAgentCount = value; }
+	bool GetDrawCellAgentCount() const { return m_DrawCellAgentCount; }
+
 private:
 	// Cells and properties
 	std::vector<Cell*> m_Cells;
@@ -66,6 +69,8 @@ private:
 	float m_CellWidth;
 	float m_CellHeight;
 
+	bool m_DrawCellAgentCount;
+	
 	// Members to avoid memory allocation on every frame
 	std::vector<SteeringAgent*> m_Neighbors;
 	int m_NrOfNeighbors;

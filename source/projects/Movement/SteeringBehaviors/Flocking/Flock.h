@@ -52,6 +52,11 @@ private:
 	float m_NeighborhoodRadius = 10.f;
 	int m_NrOfNeighbors = 0;
 
+
+	bool m_DrawNeighborCells;
+	bool m_DrawCellAgentCount;
+
+
 	SteeringAgent* m_pAgentToEvade = nullptr;
 	
 	//Steering Behaviors
@@ -73,6 +78,7 @@ private:
 private:
 	Flock(const Flock& other);
 	Flock& operator=(const Flock& other);
+
 
 	void InitializeFlock();
 };

@@ -18,7 +18,7 @@ namespace Elite
 		std::string windowTitle = "AI Elite Framework";
 		unsigned int width = 1280;
 		unsigned int height = 720;
-		bool isResizable = false;
+		bool isResizable = true;
 	};
 
 	template<typename Impl>

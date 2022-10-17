@@ -53,9 +53,9 @@ CellSpace::CellSpace(float width, float height, int rows, int cols, int maxEntit
 	m_CellWidth{ width / cols },
 	m_CellHeight{ height / rows }
 {
-	for (int row{}; row < rows; row++)
+	for (int row{}; row < rows; ++row)
 	{
-		for (int col{}; col < cols; col++)
+		for (int col{}; col < cols; ++col)
 		{
 			float left = col * m_CellWidth;
 			float bottom = row * m_CellHeight;
@@ -113,7 +113,7 @@ void CellSpace::RegisterNeighbors(SteeringAgent* agent, float queryRadius)
 	const Elite::Vector2 endIndex{ PositionToRowColumn(boundingBoxRightTop) };
 	
 
-		// Loop over every row & column, add all the agents to a list of agents
+	// Loop over every row & column, add all the agents to a list of agents
 	m_NrOfNeighbors = 0;  // Reset the value to 0	
 	m_NrOfNeighborCells = 0;  // Reset amount of cells
 	
@@ -127,7 +127,6 @@ void CellSpace::RegisterNeighbors(SteeringAgent* agent, float queryRadius)
 			{
 				m_Neighbors[m_NrOfNeighbors++] = cellAgent;
 			}
-
 			// Keep track of the active cells for debug purposes
 			m_NeighborCells[m_NrOfNeighborCells++] = m_Cells[cellIndex];
 		}
@@ -150,44 +149,39 @@ void CellSpace::RenderCells() const
 	{
 		std::vector<Elite::Vector2> rectPoints = c->GetRectPoints();
 		// Create Polygon object with the rectPoints
-		Elite::Polygon polygon{ rectPoints };
+		DEBUGRENDERER2D->DrawPolygon(rectPoints.data(), rectPoints.size(), gridColor, 0.8f);
+		Elite::Vector2 leftTop = rectPoints[1];
+		leftTop.x += 1.0f;
+		leftTop.y -= 1.0f;
 
-		DEBUGRENDERER2D->DrawPolygon(&polygon, gridColor, 1.0f);
-		const Elite::Vector2 center = c->GetRectCenter();
-		//const int cellIndex = PositionToIndex(center);
-		//DEBUGRENDERER2D->DrawString(c->GetRectCenter(), std::to_string(cellIndex).c_str());
-
-		DEBUGRENDERER2D->DrawString(center, std::to_string(c->agents.size()).c_str());
+		if(m_DrawCellAgentCount)
+			
+			DEBUGRENDERER2D->DrawString(leftTop, std::to_string(c->agents.size()).c_str());
 	}
 }
 
 void CellSpace::RenderActiveCells() const
 {
-	const Elite::Color activeColor{ 0.0f, 0.67f, 0.0f, 0.8f };  // Green and semi-transparent
+	const Elite::Color activeColor{ 1.0f, 0.0f, 0.0f, 0.8f }; 
 	for (int i{}; i < m_NrOfNeighborCells; ++i)
 	{
 		std::vector<Elite::Vector2> rectPoints = m_NeighborCells[i]->GetRectPoints();
-		// Create Polygon object with the rectPoints
-		Elite::Polygon polygon{ rectPoints };
-
-		DEBUGRENDERER2D->DrawPolygon(&polygon, activeColor, 0.0f);
+		DEBUGRENDERER2D->DrawPolygon(rectPoints.data(), rectPoints.size(), activeColor, -0.1f);
 	}
 }
+
+
 
 int CellSpace::PositionToIndex(const Elite::Vector2& pos) const
 {
 	// Returns the index of the cell the given position is in.
-
-	const int column{ Elite::Clamp(int(pos.x / m_CellWidth), 0, m_NrOfCols - 1) };
-	const int row{ Elite::Clamp(int(pos.y / m_CellHeight), 0, m_NrOfRows - 1) };
 	Elite::Vector2 gridIndex{ PositionToRowColumn(pos) };
-
-
 	return int(gridIndex.y) * m_NrOfCols + int(gridIndex.x);
 }
 
 Elite::Vector2 CellSpace::PositionToRowColumn(const Elite::Vector2& pos) const
 {
+	// Clamping the value between 0 and the max value, to prevent out of bounds errors
 	const int column{ Elite::Clamp(int(pos.x / m_CellWidth), 0, m_NrOfCols - 1) };
 	const int row{ Elite::Clamp(int(pos.y / m_CellHeight), 0, m_NrOfRows - 1) };
 

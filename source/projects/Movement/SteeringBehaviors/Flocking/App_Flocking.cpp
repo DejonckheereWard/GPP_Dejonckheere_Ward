@@ -61,7 +61,7 @@ void App_Flocking::Render(float deltaTime) const
 	RenderWorldBounds(m_TrimWorldSize);
 
 	m_pFlock->Render(deltaTime);
-	//m_pAgentToEvade->Render(deltaTime);
+	m_pAgentToEvade->Render(deltaTime);
 
 	//Render Target
 	if(m_VisualizeMouseTarget)

@@ -9,7 +9,8 @@
 #include "EGeometry2DTypes.h"
 #include "EGeometry2DUtilities.h"
 
-#pragma region Polygon
+#pragma region 
+
 #pragma region Constructors
 using namespace std;
 
