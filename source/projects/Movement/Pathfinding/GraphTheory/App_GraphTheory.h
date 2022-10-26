@@ -29,6 +29,11 @@ public:
 	void Render(float deltaTime) const override;
 
 private:
+	// Functionality for the graph was split because of the amount of functionality needed
+	Elite::Graph2D<Elite::GraphNode2D, Elite::GraphConnection2D>* m_pGraph2D;
+	Elite::GraphEditor m_GraphEditor{};
+	Elite::GraphRenderer m_GraphRenderer{};
+
 
 	//C++ make the class non-copyable
 	App_GraphTheory(const App_GraphTheory&) = delete;

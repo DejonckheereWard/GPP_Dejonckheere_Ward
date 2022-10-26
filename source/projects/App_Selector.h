@@ -5,7 +5,8 @@
 //#define ActiveApp_Sandbox
 //#define ActiveApp_Steering
 //#define ActiveApp_CombinedSteering
-#define ActiveApp_Flocking
+//#define ActiveApp_Flocking
+#define ActiveApp_GraphTheory
 
 
 //---------- Registered Applications -----------
@@ -31,6 +32,10 @@ typedef App_CombinedSteering CurrentApp;
 typedef App_Flocking CurrentApp;
 #endif  // Flocking
 
+#ifdef ActiveApp_GraphTheory
+#include "projects/Movement/Pathfinding/GraphTheory/App_GraphTheory.h"
+typedef App_GraphTheory CurrentApp;
+#endif  // GraphTheory
 
 
 class App_Selector {
