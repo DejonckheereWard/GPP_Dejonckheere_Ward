@@ -6,7 +6,9 @@
 //#define ActiveApp_Steering
 //#define ActiveApp_CombinedSteering
 //#define ActiveApp_Flocking
-#define ActiveApp_GraphTheory
+//#define ActiveApp_GraphTheory
+//#define ActiveApp_ASTAR
+#define ActiveApp_NavMeshGraph
 
 
 //---------- Registered Applications -----------
@@ -37,6 +39,16 @@ typedef App_Flocking CurrentApp;
 typedef App_GraphTheory CurrentApp;
 #endif  // GraphTheory
 
+#ifdef ActiveApp_ASTAR
+#include "projects/Movement/Pathfinding/AStar/App_PathfindingAStar/App_PathfindingAStar.h"
+typedef App_PathfindingAStar CurrentApp;
+#endif  // GraphTheory
+
+
+#ifdef ActiveApp_NavMeshGraph
+#include "projects/Movement/Pathfinding/NavMeshGraph/App_NavMeshGraph.h"
+typedef App_NavMeshGraph CurrentApp;
+#endif  // GraphTheory
 
 class App_Selector {
 public: 
