@@ -44,7 +44,6 @@ typedef App_GraphTheory CurrentApp;
 typedef App_PathfindingAStar CurrentApp;
 #endif  // GraphTheory
 
-
 #ifdef ActiveApp_NavMeshGraph
 #include "projects/Movement/Pathfinding/NavMeshGraph/App_NavMeshGraph.h"
 typedef App_NavMeshGraph CurrentApp;

@@ -16,4 +16,4 @@ const Elite::Color WATER_NODE_COLOR{ 0.5f, 0.9f, 0.9f };
 
 
 //Radius
-const float DEFAULT_NODE_RADIUS{ 3.f };
+const float DEFAULT_NODE_RADIUS{ 1.5f };
