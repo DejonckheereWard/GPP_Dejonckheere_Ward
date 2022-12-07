@@ -1,4 +1,4 @@
-//Precompiled Header [ALWAYS ON TOP IN CPP]
+6//Precompiled Header [ALWAYS ON TOP IN CPP]
 #include "stdafx.h"
 
 //Includes
@@ -10,7 +10,7 @@
 ///////////////////////////////////////
 //SEEK
 //****
-SteeringOutput Seek::CalculateSteering(float deltaT, SteeringAgent* pAgent)
+SteeringOutput Seek::CalculateSteering(float deltaT, SteeringAgent * pAgent)
 {
 	SteeringOutput steering = {};
 
@@ -22,7 +22,11 @@ SteeringOutput Seek::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	// Draw DEBUG visualization
 	if (pAgent->CanRenderBehavior())
 	{
-		DEBUGRENDERER2D->DrawDirection(pAgent->GetPosition(), steering.LinearVelocity, 5.0f, Elite::Color(0.0f, 1.0f, 0.0f) );
+		//DEBUGRENDERER2D->DrawDirection(pAgent->GetPosition(), steering.LinearVelocity, 5.0f, Elite::Color(0.0f, 1.0f, 0.0f) );
+
+		DEBUGRENDERER2D->DrawSegment(pAgent->GetPosition(), m_Target.Position, { 0,1,0 });
+		DEBUGRENDERER2D->DrawCircle(m_Target.Position, 1.5f, { 0,1,0 }, DEBUGRENDERER2D->NextDepthSlice());
+		DEBUGRENDERER2D->DrawCircle(pAgent->GetPosition(), pAgent->GetRadius() + 30.0f, { 0,1,0 }, DEBUGRENDERER2D->NextDepthSlice());
 	}
 
 	return steering;
@@ -50,7 +54,7 @@ SteeringOutput Flee::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	{
 		DEBUGRENDERER2D->DrawDirection(pAgent->GetPosition(), steering.LinearVelocity, 5.0f, Elite::Color(0.0f, 1.0f, 0.0f));
 	}
-	
+
 
 	return steering;
 }
@@ -66,7 +70,7 @@ SteeringOutput Arrive::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	// Squared for small optimization (reduced usage of "sqrt")
 	constexpr float arrivalRadiusSquared{ Elite::Square(1.0f) };
 	constexpr float slowRadiusSquared{ Elite::Square(15.0f) };
-	
+
 	// Calculate vector to the target
 	const Elite::Vector2 targetVector{ m_Target.Position - pAgent->GetPosition() };
 	const float targetDistanceSquared{ targetVector.MagnitudeSquared() };
@@ -82,14 +86,14 @@ SteeringOutput Arrive::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 		steering.LinearVelocity = targetVector;
 		steering.LinearVelocity.Normalize();  // Normalize the direction
 
-	
+
 		if (targetDistanceSquared < slowRadiusSquared)
 		{
 			// Slow down when agent gets close to the target
 			steering.LinearVelocity *= pAgent->GetMaxLinearSpeed() * targetDistanceSquared / slowRadiusSquared;
 		}
 		else
-		{		
+		{
 			steering.LinearVelocity *= pAgent->GetMaxLinearSpeed(); // Multiple the direction with the speed
 		}
 	}
@@ -118,7 +122,7 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 
 	if (angleBetween > m_StopRotationAngle)
 	{
-		steering.AngularVelocity = -pAgent->GetMaxAngularSpeed();		
+		steering.AngularVelocity = -pAgent->GetMaxAngularSpeed();
 	}
 	else if (angleBetween < -m_StopRotationAngle)
 	{
@@ -144,7 +148,7 @@ SteeringOutput Face::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 		DEBUGRENDERER2D->DrawDirection(pAgent->GetPosition(), targetVector, 5.0f, Elite::Color(0.0f, 1.0f, 0.0f));
 		DEBUGRENDERER2D->DrawString(pAgent->GetPosition() + Elite::Vector2(1.5f, 1.5f), std::to_string(Elite::ToDegrees(angleBetween)).c_str());
 	}
-	
+
 	return steering;
 
 
@@ -167,7 +171,7 @@ SteeringOutput Wander::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 
 	// Get the point of the angle on the circle
 	// (offSetPoint + (Radius * Angle)
-	const Elite::Vector2 wanderTarget{ offsetPoint + Elite::Vector2(m_Radius * cosf(m_WanderAngle), m_Radius * sinf(m_WanderAngle))};
+	const Elite::Vector2 wanderTarget{ offsetPoint + Elite::Vector2(m_Radius * cosf(m_WanderAngle), m_Radius * sinf(m_WanderAngle)) };
 
 
 
@@ -189,21 +193,21 @@ SteeringOutput Pursuit::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 	// Calculate intercept target
 	// How far is target agent & what is it's velocity?
 
-	SteeringOutput steering{};	
+	SteeringOutput steering{};
 	Elite::Vector2 targetFuturePosition{ m_Target.Position };
 	Elite::Vector2 vectorToTarget{ m_Target.Position - pAgent->GetPosition() };
-	float distanceToTarget{ vectorToTarget.Magnitude()};
+	float distanceToTarget{ vectorToTarget.Magnitude() };
 	float timeToTarget{ distanceToTarget / pAgent->GetMaxLinearSpeed() };  // The closer we get, the shorter the lookahead time will be
-	
+
 	targetFuturePosition = m_Target.Position + (m_Target.LinearVelocity * timeToTarget);
-	
+
 	//Draw DEBUG visualization
 	if (pAgent->CanRenderBehavior())
 	{
 		DEBUGRENDERER2D->DrawSegment(m_Target.Position, targetFuturePosition, Elite::Color(1.0f, 1.0f, 0.0f), 0.0f);
 		DEBUGRENDERER2D->DrawPoint(targetFuturePosition, 5.0f, Elite::Color(0.0f, 0.67f, 1.0f), 0.0f);
 	}
-	
+
 	// Go to the new target
 	m_Target.Position = targetFuturePosition;
 	steering = Seek::CalculateSteering(deltaT, pAgent);
@@ -213,7 +217,7 @@ SteeringOutput Pursuit::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 SteeringOutput Evade::CalculateSteering(float deltaT, SteeringAgent* pAgent)
 {
 	// Tries to evade the path of the target	
-		
+
 	// Calculate evade target
 	// How far is target agent & what is it's velocity?
 

@@ -8,7 +8,9 @@
 //#define ActiveApp_Flocking
 //#define ActiveApp_GraphTheory
 //#define ActiveApp_ASTAR
-#define ActiveApp_NavMeshGraph
+//#define ActiveApp_NavMeshGraph
+//#define ActiveApp_FSM
+#define ActiveApp_BT
 
 
 //---------- Registered Applications -----------
@@ -48,6 +50,17 @@ typedef App_PathfindingAStar CurrentApp;
 #include "projects/Movement/Pathfinding/NavMeshGraph/App_NavMeshGraph.h"
 typedef App_NavMeshGraph CurrentApp;
 #endif  // GraphTheory
+
+#ifdef ActiveApp_FSM
+#include "projects/DecisionMaking/FiniteStateMachines/App_AgarioGame.h"
+typedef App_AgarioGame CurrentApp;
+#endif  // FiniteStateMachine
+
+#ifdef ActiveApp_BT
+#include "projects/DecisionMaking/BehaviorTrees/App_AgarioGame_BT.h"
+typedef App_AgarioGame_BT CurrentApp;
+#endif
+
 
 class App_Selector {
 public: 
