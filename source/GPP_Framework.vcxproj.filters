@@ -45,6 +45,7 @@
     <ClCompile Include="projects\Shared\BaseAgent.cpp" />
     <ClCompile Include="projects\Shared\NavigationColliderElement.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="projects\DecisionMaking\InfluenceMaps\App_InfluenceMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework\EliteAI\EliteData\EBlackboard.h" />
@@ -139,6 +140,8 @@
     <ClInclude Include="projects\Shared\BaseAgent.h" />
     <ClInclude Include="projects\Shared\NavigationColliderElement.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="framework\EliteAI\EliteGraphs\EInfluenceMap.h" />
+    <ClInclude Include="projects\DecisionMaking\InfluenceMaps\App_InfluenceMap.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
