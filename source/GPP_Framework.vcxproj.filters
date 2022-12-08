@@ -45,7 +45,6 @@
     <ClCompile Include="projects\Shared\BaseAgent.cpp" />
     <ClCompile Include="projects\Shared\NavigationColliderElement.cpp" />
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="..\..\Week 08\source\framework\EliteAI\EliteDecisionMaking\EliteBehaviorTree\EBehaviorTree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework\EliteAI\EliteData\EBlackboard.h" />

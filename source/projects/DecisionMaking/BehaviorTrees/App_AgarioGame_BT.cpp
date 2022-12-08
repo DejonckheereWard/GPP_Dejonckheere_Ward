@@ -26,12 +26,12 @@ App_AgarioGame_BT::~App_AgarioGame_BT()
 	}
 	m_pAgentVec.clear();
 
-	SAFE_DELETE(m_pContactListener);
 	SAFE_DELETE(m_pSmartAgent);
 
 	for (auto pNC : m_vNavigationColliders)
 		SAFE_DELETE(pNC);
 	m_vNavigationColliders.clear();
+	SAFE_DELETE(m_pContactListener);
 }
 
 void App_AgarioGame_BT::Start()

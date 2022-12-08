@@ -12,16 +12,25 @@ BehaviorState BehaviorSelector::Execute(Blackboard* pBlackBoard)
 {
 	//TODO: Fill in this code
 	// Loop over all children in m_ChildBehaviors
-
+	for (auto& child : m_ChildBehaviors)
+	{
 		//Every Child: Execute and store the result in m_CurrentState
-
 		//Check the currentstate and apply the selector Logic:
-		//if a child returns Success:
-			//stop looping over all children and return Success
-		//if a child returns Running:
-			//Running: stop looping and return Running
+		m_CurrentState = child->Execute(pBlackBoard);
+
+		//you can use and if but we use switch case for less lines of code and cleaner
+
+		switch (m_CurrentState) {
+		default:
+		case BehaviorState::Failure:
+			continue;
+		case BehaviorState::Success:
+		case BehaviorState::Running:
+			return m_CurrentState;
+		}
 
 		//The selector fails if all children failed.
+	}
 
 	//All children failed
 	m_CurrentState = BehaviorState::Failure;
@@ -30,19 +39,27 @@ BehaviorState BehaviorSelector::Execute(Blackboard* pBlackBoard)
 //SEQUENCE
 BehaviorState BehaviorSequence::Execute(Blackboard* pBlackBoard)
 {
-	//TODO: FIll in this code
 	//Loop over all children in m_ChildBehaviors
-
+	for (auto& child : m_ChildBehaviors)
+	{
 		//Every Child: Execute and store the result in m_CurrentState
-
+		m_CurrentState = child->Execute(pBlackBoard);
 		//Check the currentstate and apply the sequence Logic:
 		//if a child returns Failed:
 			//stop looping over all children and return Failed
 		//if a child returns Running:
 			//Running: stop looping and return Running
-
+		switch (m_CurrentState) {
+		default:
+		case BehaviorState::Success:
+			continue;
+		case BehaviorState::Failure:
+			return m_CurrentState;
+		case BehaviorState::Running:
+			return m_CurrentState;
+		}
 		//The selector succeeds if all children succeeded.
-
+	}
 	//All children succeeded 
 	m_CurrentState = BehaviorState::Success;
 	return m_CurrentState;
