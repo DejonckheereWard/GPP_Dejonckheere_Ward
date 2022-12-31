@@ -10,7 +10,9 @@
 //#define ActiveApp_ASTAR
 //#define ActiveApp_NavMeshGraph
 //#define ActiveApp_FSM
-#define ActiveApp_BT
+//#define ActiveApp_BT
+//#define ActiveApp_IM
+#define ActiveApp_AgarioIM
 
 
 //---------- Registered Applications -----------
@@ -59,6 +61,16 @@ typedef App_AgarioGame CurrentApp;
 #ifdef ActiveApp_BT
 #include "projects/DecisionMaking/BehaviorTrees/App_AgarioGame_BT.h"
 typedef App_AgarioGame_BT CurrentApp;
+#endif
+
+#ifdef ActiveApp_IM
+#include "projects/DecisionMaking/InfluenceMaps/App_InfluenceMap.h"
+typedef App_InfluenceMap CurrentApp;
+#endif
+
+#ifdef ActiveApp_AgarioIM
+#include "projects/DecisionMaking/InfluenceMaps/App_AgarioGame_IM.h"
+typedef App_AgarioGame_IM CurrentApp;
 #endif
 
 

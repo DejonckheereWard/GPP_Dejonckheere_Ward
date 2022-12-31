@@ -35,9 +35,9 @@ void App_InfluenceMap::Start()
 
 void App_InfluenceMap::Update(float deltaTime)
 {
-	if (m_EditGraphEnabled)
+	if(m_EditGraphEnabled)
 	{
-		if (m_UseWaypointGraph)
+		if(m_UseWaypointGraph)
 		{
 			m_WaypointGraphEditor.UpdateGraph(m_pInfluenceGraph2D);
 			m_pInfluenceGraph2D->SetConnectionCostsToDistance();
@@ -50,10 +50,10 @@ void App_InfluenceMap::Update(float deltaTime)
 	else
 	{
 		//------ INPUT ------
-		if (INPUTMANAGER->IsMouseButtonUp(InputMouseButton::eLeft))
+		if(INPUTMANAGER->IsMouseButtonUp(InputMouseButton::eLeft))
 			AddInfluenceOnMouseClick(InputMouseButton::eLeft, 100);
 
-		if (INPUTMANAGER->IsMouseButtonUp(InputMouseButton::eRight))
+		if(INPUTMANAGER->IsMouseButtonUp(InputMouseButton::eRight))
 			AddInfluenceOnMouseClick(InputMouseButton::eRight, -100);
 	}
 
@@ -111,9 +111,9 @@ void App_InfluenceMap::UpdateUI()
 	auto decay = m_pInfluenceGrid->GetDecay();
 	auto propagationInterval = m_pInfluenceGrid->GetPropagationInterval();
 
-	ImGui::SliderFloat("Momentum", &momentum, 0.0f, 1.f, "%.2");
-	ImGui::SliderFloat("Decay", &decay, 0.f, 1.f, "%.2");
-	ImGui::SliderFloat("Propagation Interval", &propagationInterval, 0.f, 2.f, "%.2");
+	ImGui::SliderFloat("Momentum", &momentum, 0.0f, 1.f, "%.2f");
+	ImGui::SliderFloat("Decay", &decay, 0.f, 1.f, "%.2f");
+	ImGui::SliderFloat("Propagation Interval", &propagationInterval, 0.f, 2.f, "%.2f");
 	ImGui::Spacing();
 
 	//Set data
@@ -133,7 +133,7 @@ void App_InfluenceMap::UpdateUI()
 void App_InfluenceMap::Render(float deltaTime) const
 {
 
-	if (m_UseWaypointGraph)
+	if(m_UseWaypointGraph)
 	{
 		m_pInfluenceGraph2D->SetNodeColorsBasedOnInfluence();
 		m_GraphRenderer.RenderGraph(m_pInfluenceGraph2D, true, true);
@@ -142,8 +142,8 @@ void App_InfluenceMap::Render(float deltaTime) const
 	{
 		m_pInfluenceGrid->SetNodeColorsBasedOnInfluence();
 
-		if (m_RenderAsGraph)
-			m_GraphRenderer.RenderGraph(m_pInfluenceGrid,true, true);
+		if(m_RenderAsGraph)
+			m_GraphRenderer.RenderGraph(m_pInfluenceGrid, true, true);
 		else
 			m_GraphRenderer.RenderGraph(m_pInfluenceGrid, true, false, false, true);
 	}
@@ -155,7 +155,7 @@ void App_InfluenceMap::AddInfluenceOnMouseClick(Elite::InputMouseButton mouseBtn
 	auto mouseData = INPUTMANAGER->GetMouseData(Elite::InputType::eMouseButton, mouseBtn);
 	auto mousePos = DEBUGRENDERER2D->GetActiveCamera()->ConvertScreenToWorld(Vector2{ (float)mouseData.X, (float)mouseData.Y });
 
-	if (m_UseWaypointGraph)
+	if(m_UseWaypointGraph)
 		m_pInfluenceGraph2D->SetInfluenceAtPosition(mousePos, inf);
 	else
 		m_pInfluenceGrid->SetInfluenceAtPosition(mousePos, inf);

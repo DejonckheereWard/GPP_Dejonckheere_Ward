@@ -6,7 +6,7 @@
 namespace Elite
 {
 	template<class T_GraphType>
-	class InfluenceMap final : public T_GraphType
+	class InfluenceMap final: public T_GraphType
 	{
 	public:
 		InfluenceMap(bool isDirectional): T_GraphType(isDirectional) {}
@@ -15,14 +15,14 @@ namespace Elite
 
 		void SetInfluenceAtPosition(Elite::Vector2 pos, float influence);
 
-		void Render() const {}
+		void Render() const {};
 		void SetNodeColorsBasedOnInfluence();
 
-		float GetMomentum() const { return m_Momentum; }
-		void SetMomentum(float momentum) { m_Momentum = momentum; }
+		float GetMomentum() const { return m_Momentum; };
+		void SetMomentum(float momentum) { m_Momentum = momentum; };
 
-		float GetDecay() const { return m_Decay; }
-		void SetDecay(float decay) { m_Decay = decay; }
+		float GetDecay() const { return m_Decay; };
+		void SetDecay(float decay) { m_Decay = decay; };
 
 		float GetPropagationInterval() const { return m_PropagationInterval; }
 		void SetPropagationInterval(float propagationInterval) { m_PropagationInterval = propagationInterval; }
@@ -31,9 +31,9 @@ namespace Elite
 		virtual void OnGraphModified(bool nrOfNodesChanged, bool nrOfConnectionsChanged) override;
 
 	private:
-		Elite::Color m_NegativeColor{ 1.f, 0.2f, 0.f};
+		Elite::Color m_NegativeColor{ 1.f, 0.2f, 0.f };
 		Elite::Color m_NeutralColor{ 0.f, 0.f, 0.f };
-		Elite::Color m_PositiveColor{ 0.f, 0.2f, 1.f};
+		Elite::Color m_PositiveColor{ 0.f, 0.2f, 1.f };
 
 		float m_MaxAbsInfluence = 100.f;
 
@@ -49,14 +49,44 @@ namespace Elite
 	template <class T_GraphType>
 	void InfluenceMap<T_GraphType>::PropagateInfluence(float deltaTime)
 	{
-		// TODO: implement
+		// Return if elapsed time is not high enough
+		m_TimeSinceLastPropagation += deltaTime;
+		if(m_TimeSinceLastPropagation < m_PropagationInterval)
+		{
+			return;
+		}
+		m_TimeSinceLastPropagation -= m_PropagationInterval;  // Could also set to 0;
+
+		// Excecute Propagation
+		// Loop over every node, check influence of each neighbouring connection
+		for(const auto& node : m_Nodes)
+		{
+			float nodeInfluence{};
+			for(const auto& connection : GetNodeConnections(node))
+			{
+				const float sourceInfluence{ GetNode(connection->GetTo())->GetInfluence() };
+				const float connectionCost{ connection->GetCost() };
+
+				// Take the highest influencing neighbour
+				const float newInfluence{ sourceInfluence * expf(-connectionCost * m_Decay) };
+				if(abs(newInfluence) > abs(nodeInfluence))
+					nodeInfluence = newInfluence;
+			}
+			const float interpolatedInfluence{ Lerp(node->GetInfluence(), nodeInfluence, m_Momentum) };
+			m_InfluenceDoubleBuffer[node->GetIndex()] = interpolatedInfluence;
+		}
+
+		for(auto& node : m_Nodes)
+		{
+			node->SetInfluence(m_InfluenceDoubleBuffer[node->GetIndex()]);
+		}
 	}
 
 	template <class T_GraphType>
 	inline void InfluenceMap<T_GraphType>::SetInfluenceAtPosition(Elite::Vector2 pos, float influence)
 	{
 		auto idx = GetNodeIdxAtWorldPos(pos);
-		if (IsNodeValid(idx))
+		if(IsNodeValid(idx))
 			GetNode(idx)->SetInfluence(influence);
 	}
 
@@ -65,13 +95,13 @@ namespace Elite
 	{
 		const float half = .5f;
 
-		for (auto& pNode : m_Nodes)
+		for(auto& pNode : m_Nodes)
 		{
 			Color nodeColor{};
 			float influence = pNode->GetInfluence();
 			float relativeInfluence = abs(influence) / m_MaxAbsInfluence;
 
-			if (influence < 0)
+			if(influence < 0)
 			{
 				nodeColor = Elite::Color{
 				Lerp(m_NeutralColor.r, m_NegativeColor.r, relativeInfluence),
