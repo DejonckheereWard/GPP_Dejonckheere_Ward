@@ -47,6 +47,7 @@
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="projects\DecisionMaking\InfluenceMaps\App_InfluenceMap.cpp" />
     <ClCompile Include="projects\DecisionMaking\InfluenceMaps\App_AgarioGame_IM.cpp" />
+    <ClCompile Include="projects\Movement\SteeringBehaviors\SpacePartitioning\HierarchicalSpacePartitioning.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework\EliteAI\EliteData\EBlackboard.h" />
@@ -145,6 +146,7 @@
     <ClInclude Include="projects\DecisionMaking\InfluenceMaps\App_InfluenceMap.h" />
     <ClInclude Include="projects\DecisionMaking\InfluenceMaps\App_AgarioGame_IM.h" />
     <ClInclude Include="projects\DecisionMaking\InfluenceMaps\Behaviors_IM.h" />
+    <ClInclude Include="projects\Movement\SteeringBehaviors\SpacePartitioning\HierarchicalSpacePartitioning.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />

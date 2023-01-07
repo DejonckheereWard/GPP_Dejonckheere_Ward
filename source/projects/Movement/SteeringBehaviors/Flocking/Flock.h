@@ -7,20 +7,21 @@ class SteeringAgent;
 class BlendedSteering;
 class PrioritySteering;
 class CellSpace;
+class QuadCellSpace;
 
 class Flock final
 {
 public:
 	Flock(
-		int flockSize = 50, 
-		float worldSize = 100.f, 
-		SteeringAgent* pAgentToEvade = nullptr, 
+		int flockSize = 50,
+		float worldSize = 100.f,
+		SteeringAgent* pAgentToEvade = nullptr,
 		bool trimWorld = false);
 
 	~Flock();
 
 	void Update(float deltaT);
-	void UpdateAndRenderUI() ;
+	void UpdateAndRenderUI();
 	void Render(float deltaT);
 
 	void RegisterNeighbors(SteeringAgent* pAgent);
@@ -29,7 +30,7 @@ public:
 
 	Elite::Vector2 GetAverageNeighborPos() const;
 	Elite::Vector2 GetAverageNeighborVelocity() const;
-	
+
 	float GetNeighborhoodRadius() const { return m_NeighborhoodRadius; }
 
 	void SetTarget_Seek(TargetData target);
@@ -38,7 +39,7 @@ public:
 private:
 	//Datamembers
 	int m_FlockSize = 0;
-	
+
 	std::vector<SteeringAgent*> m_Agents;
 	std::vector<SteeringAgent*> m_Neighbors;
 
@@ -48,17 +49,19 @@ private:
 	bool m_CanDebugRender{ false };
 	bool m_RenderAgents{ false };
 	bool m_UseSpacePartitioning{ true };
-	
-	float m_NeighborhoodRadius = 10.f;
+	bool m_UseQuadCellSpace{ true };
+
+	float m_NeighborhoodRadius = 5.f;
 	int m_NrOfNeighbors = 0;
 
 
 	bool m_DrawNeighborCells;
+	bool m_HighlightNeighbors;
 	bool m_DrawCellAgentCount;
 
 
 	SteeringAgent* m_pAgentToEvade = nullptr;
-	
+
 	//Steering Behaviors
 	Seek* m_pSeekBehavior = nullptr;
 	Separation* m_pSeparationBehavior = nullptr;
@@ -72,6 +75,7 @@ private:
 
 	// Cellspace
 	CellSpace* m_pCellSpace;
+	QuadCellSpace* m_pQuadCellSpace;
 
 	float* GetWeight(ISteeringBehavior* pBehaviour);
 

@@ -12,7 +12,7 @@ class Flock;
 //-----------------------------------------------------------------
 // Application
 //-----------------------------------------------------------------
-class App_Flocking final : public IApp
+class App_Flocking final: public IApp
 {
 public:
 	//Constructor & Destructor
@@ -29,9 +29,9 @@ private:
 	TargetData m_MouseTarget = {};
 	bool m_UseMouseTarget = true;
 	bool m_VisualizeMouseTarget = true;
-	
-	float m_TrimWorldSize = 500.0f;
-	int m_FlockSize = 5000;
+
+	float m_TrimWorldSize = 1000.0f;
+	int m_FlockSize = 4000;
 
 	Flock* m_pFlock = nullptr;
 	SteeringAgent* m_pAgentToEvade = nullptr;

@@ -204,6 +204,7 @@
     <ClCompile Include="framework\EliteWindow\SDLWindow\SDLWindow.cpp" />
     <ClCompile Include="framework\EliteRendering\SDLIntegration\SDLHelpers\gl3w.c" />
     <ClCompile Include="framework\main.cpp" />
+    <ClCompile Include="projects\Movement\SteeringBehaviors\SpacePartitioning\HierarchicalSpacePartitioning.cpp" />
     <ClCompile Include="projects\DecisionMaking\BehaviorTrees\App_AgarioGame_BT.cpp" />
     <ClCompile Include="projects\DecisionMaking\FiniteStateMachines\App_AgarioGame.cpp" />
     <ClCompile Include="projects\DecisionMaking\FiniteStateMachines\StatesAndTransitions.cpp" />
@@ -259,6 +260,7 @@
     <ClInclude Include="framework\EliteAI\EliteNavigation\Algorithms\EPathSmoothing.h" />
     <ClInclude Include="framework\EliteAI\EliteNavigation\EHeuristicFunctions.h" />
     <ClInclude Include="framework\EliteAI\EliteNavigation\ENavigation.h" />
+    <ClInclude Include="projects\Movement\SteeringBehaviors\SpacePartitioning\HierarchicalSpacePartitioning.h" />
     <ClInclude Include="projects\App_MachineLearning\DirectedGraph.h" />
     <ClInclude Include="framework\EliteMath\FMatrix.h" />
     <ClInclude Include="framework\EliteHelpers\ESingleton.h" />

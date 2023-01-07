@@ -4,6 +4,7 @@
 #include "../SteeringAgent.h"
 #include "../Steering/SteeringBehaviors.h"
 #include "../CombinedSteering/CombinedSteeringBehaviors.h"
+#include "../SpacePartitioning/HierarchicalSpacePartitioning.h"
 #include "../SpacePartitioning/SpacePartitioning.h"
 
 using namespace Elite;
@@ -21,8 +22,9 @@ Flock::Flock(
 	, m_pAgentToEvade{ pAgentToEvade }
 	, m_NeighborhoodRadius{ 5.0f }
 	, m_NrOfNeighbors{ 0 }
-	, m_pCellSpace{ new CellSpace(worldSize, worldSize, 75, 75, flockSize) }
-	, m_DrawCellAgentCount{ true }
+	, m_pQuadCellSpace{ new QuadCellSpace(Boundary({worldSize / 2.0f, worldSize / 2.0f}, worldSize / 2.0f), 1) }
+	, m_pCellSpace{ new CellSpace(worldSize, worldSize, 100, 100, flockSize) }
+	, m_DrawCellAgentCount{ false }
 	, m_DrawNeighborCells{ true }
 {
 	m_Agents.resize(m_FlockSize);
@@ -46,7 +48,7 @@ Flock::~Flock()
 	SAFE_DELETE(m_pWanderBehavior);
 	SAFE_DELETE(m_pEvadeBehavior);
 
-	for (SteeringAgent* pAgent : m_Agents)
+	for(SteeringAgent* pAgent : m_Agents)
 	{
 		SAFE_DELETE(pAgent);
 	}
@@ -55,15 +57,21 @@ Flock::~Flock()
 	m_NrOfNeighbors = 0;
 
 	SAFE_DELETE(m_pCellSpace);
+	SAFE_DELETE(m_pQuadCellSpace);
 }
 
 void Flock::Update(float deltaT)
 {
-	// TODO: update the flock
-	// loop over all the agents
-		// register its neighbors	(-> memory pool is filled with neighbors of the currently evaluated agent)
-		// update it				(-> the behaviors can use the neighbors stored in the pool, next iteration they will be the next agent's neighbors)
-		// trim it to the world
+	// Reinit the quadtree every update
+	if(m_UseQuadCellSpace)
+	{
+		m_pQuadCellSpace->Clear();
+		for(SteeringAgent* pAgent : m_Agents)
+		{
+			m_pQuadCellSpace->AddAgent(pAgent);
+		}
+	}
+
 	TargetData evadeTarget{};
 	evadeTarget.Position = m_pAgentToEvade->GetPosition();
 	evadeTarget.LinearVelocity = m_pAgentToEvade->GetLinearVelocity();
@@ -73,19 +81,23 @@ void Flock::Update(float deltaT)
 	// Loop over every agent
 
 
-	for (SteeringAgent* pAgent : m_Agents)
+	for(SteeringAgent* pAgent : m_Agents)
 	{
 		m_pEvadeBehavior->SetTarget(evadeTarget);
 		// Register every neighbour
 
 		// Check if agent moved to new cell
-		m_pCellSpace->UpdateAgentCell(pAgent);
-		if (m_UseSpacePartitioning)
-			m_pCellSpace->RegisterNeighbors(pAgent, m_NeighborhoodRadius);
+
+		if(!m_UseQuadCellSpace)
+		{
+			m_pCellSpace->UpdateAgentCell(pAgent);
+			if(m_UseSpacePartitioning)
+				m_pCellSpace->RegisterNeighbors(pAgent, m_NeighborhoodRadius);
+		}
 		RegisterNeighbors(pAgent);
 		pAgent->Update(deltaT);
 		pAgent->SetOldPosition(pAgent->GetPosition());
-		if (m_TrimWorld)
+		if(m_TrimWorld)
 		{
 			// Trim the agent to the world
 			pAgent->TrimToWorld(m_WorldSize);
@@ -97,15 +109,15 @@ void Flock::Update(float deltaT)
 void Flock::Render(float deltaT)
 {
 	// TODO: render the flock
-	if (m_RenderAgents)
+	if(m_RenderAgents)
 	{
-		for (SteeringAgent* pAgent : m_Agents)
+		for(SteeringAgent* pAgent : m_Agents)
 		{
 			pAgent->Render(deltaT);
 		}
 	}
 
-	if (m_CanDebugRender)
+	if(m_CanDebugRender)
 	{
 		const Elite::Color boundingBoxColor{ Elite::Color(1.0f, 0.67f, 0.0f) }; // Orange?
 		const Elite::Color neighborhoodRadiusColor{ Elite::Color(1.0f, 0.0f, 0.0f) }; // Red?
@@ -125,16 +137,27 @@ void Flock::Render(float deltaT)
 		const size_t neighborCount{ size_t(GetNrOfNeighbors()) };
 
 		// Draw the bounding box
-		if (m_UseSpacePartitioning)
+		if(m_UseSpacePartitioning)
 		{
 			// Draw the cell grid
-			m_pCellSpace->RenderCells();
+			if(m_UseQuadCellSpace)
+			{
+				m_pQuadCellSpace->Render();
+				if(m_DrawNeighborCells)
+					m_pQuadCellSpace->RenderActiveCells(Boundary(agentToDebug->GetPosition(), m_NeighborhoodRadius));
+			}
+			else
+			{
 
-			// Draw active neighbor cells for the given agent
-			m_pCellSpace->SetDrawCellAgentCount(m_DrawCellAgentCount);
+				m_pCellSpace->RenderCells();
 
-			if (m_DrawNeighborCells)
-				m_pCellSpace->RenderActiveCells();
+				//Draw active neighbor cells for the given agent
+				m_pCellSpace->SetDrawCellAgentCount(m_DrawCellAgentCount);
+
+				if(m_DrawNeighborCells)
+					m_pCellSpace->RenderActiveCells();
+			}
+
 
 			std::vector<Elite::Vector2> boundingBoxPoints{};
 			const Elite::Vector2 agentPos{ agentToDebug->GetPosition() };
@@ -148,10 +171,11 @@ void Flock::Render(float deltaT)
 
 		// Draw neighborhoodradius
 		DEBUGRENDERER2D->DrawCircle(agentToDebug->GetPosition(), GetNeighborhoodRadius(), neighborhoodRadiusColor, 0.0f);
-		for (size_t neighborIndex{}; neighborIndex < neighborCount; neighborIndex++)
+		for(size_t neighborIndex{}; neighborIndex < neighborCount; neighborIndex++)
 		{
 			// Highlight the neighbors 
-			DEBUGRENDERER2D->DrawCircle(neighbors[neighborIndex]->GetPosition(), agentToDebug->GetRadius(), neighborHighlightColor, 0.0f);
+			if(m_HighlightNeighbors)
+				DEBUGRENDERER2D->DrawCircle(neighbors[neighborIndex]->GetPosition(), agentToDebug->GetRadius(), neighborHighlightColor, 0.0f);
 
 		}
 	}
@@ -202,13 +226,20 @@ void Flock::UpdateAndRenderUI()
 	ImGui::Spacing();
 
 	ImGui::Checkbox("Debug Rendering", &m_CanDebugRender);
-	if (m_CanDebugRender)
+	if(m_CanDebugRender)
 	{
 		ImGui::Checkbox("Draw Neighbor Cells", &m_DrawNeighborCells);
+		ImGui::Checkbox("Highlight Neighbor Agents", &m_HighlightNeighbors);
 		ImGui::Checkbox("Draw Cell Agent Count", &m_DrawCellAgentCount);
 	}
 	ImGui::Spacing();
 	ImGui::Checkbox("Spatial Partitioning", &m_UseSpacePartitioning);
+
+	if(m_UseSpacePartitioning)
+	{
+		ImGui::Checkbox("Use Quadtree cells", &m_UseQuadCellSpace);
+	}
+
 	ImGui::Spacing();
 	ImGui::Spacing();
 	ImGui::SliderFloat("Neighborhood Radius", &m_NeighborhoodRadius, 3.f, 20.f, "%.1f");
@@ -232,13 +263,32 @@ void Flock::RegisterNeighbors(SteeringAgent* pAgent)
 	m_NrOfNeighbors = 0;
 
 
-	const std::vector<SteeringAgent*>& agentList{ m_UseSpacePartitioning ? m_pCellSpace->GetNeighbors() : m_Agents };
-	const size_t agentAmount{ m_UseSpacePartitioning ? m_pCellSpace->GetNrOfNeighbors() : m_Agents.size() };
+	std::vector<SteeringAgent*> agentList{};
+	size_t agentAmount{};
 
-	for (size_t agentIndex{}; agentIndex < agentAmount; ++agentIndex)
+	if(m_UseSpacePartitioning)
+	{
+		if(m_UseQuadCellSpace)
+		{
+			agentList = m_pQuadCellSpace->QueryRange(Boundary(pAgent->GetPosition(), m_NeighborhoodRadius));
+			agentAmount = agentList.size();
+		}
+		else
+		{
+			agentList = m_pCellSpace->GetNeighbors();
+			agentAmount = m_pCellSpace->GetNrOfNeighbors();
+		}
+	}
+	else
+	{
+		agentList = m_Agents;
+		agentAmount = m_Agents.size();
+	}
+
+	for(size_t agentIndex{}; agentIndex < agentAmount; ++agentIndex)
 	{
 		// Check if not self
-		if (pAgent == agentList[agentIndex])
+		if(pAgent == agentList[agentIndex])
 			continue;
 
 		// Check distance from pAgent & other agent
@@ -247,7 +297,7 @@ void Flock::RegisterNeighbors(SteeringAgent* pAgent)
 		const float distanceSquared = vectorToAgent.MagnitudeSquared();
 
 		// Check if distance within squared neighbour radius
-		if (distanceSquared < Square(m_NeighborhoodRadius))  
+		if(distanceSquared < Square(m_NeighborhoodRadius))
 		{
 			// Add to memory pool & increase m_NrOfNeighbors afterwards (++ behind the var)
 			m_Neighbors[m_NrOfNeighbors++] = agentList[agentIndex];
@@ -259,7 +309,7 @@ Elite::Vector2 Flock::GetAverageNeighborPos() const
 {
 	// Loop over every neighbour and add their position to the total
 	Elite::Vector2 total{};
-	for (int i{}; i < m_NrOfNeighbors; i++)
+	for(int i{}; i < m_NrOfNeighbors; i++)
 	{
 		total += m_Neighbors[i]->GetPosition();
 	}
@@ -272,7 +322,7 @@ Elite::Vector2 Flock::GetAverageNeighborVelocity() const
 {
 	// Loop over every neighbour and add the velocities
 	Elite::Vector2 total{};
-	for (int i{}; i < m_NrOfNeighbors; i++)
+	for(int i{}; i < m_NrOfNeighbors; i++)
 	{
 		total += m_Neighbors[i]->GetLinearVelocity();
 	}
@@ -289,7 +339,7 @@ void Flock::SetTarget_Seek(TargetData target)
 
 float* Flock::GetWeight(ISteeringBehavior* pBehavior)
 {
-	if (m_pBlendedSteering)
+	if(m_pBlendedSteering)
 	{
 		auto& weightedBehaviors = m_pBlendedSteering->GetWeightedBehaviorsRef();
 		auto it = find_if(weightedBehaviors.begin(),
@@ -300,7 +350,7 @@ float* Flock::GetWeight(ISteeringBehavior* pBehavior)
 			}
 		);
 
-		if (it != weightedBehaviors.end())
+		if(it != weightedBehaviors.end())
 			return &it->weight;
 	}
 
@@ -333,13 +383,13 @@ void Flock::InitializeFlock()
 	// Split up the view into grid and randomly assign an agent to that spot
 	// Calc gridsize
 	const int gridSize = int(std::ceilf(sqrtf(float(m_FlockSize))));
-	for (int rowIndex{}; rowIndex < gridSize; rowIndex++)
+	for(int rowIndex{}; rowIndex < gridSize; rowIndex++)
 	{
-		for (int columnIndex{}; columnIndex < gridSize; columnIndex++)
+		for(int columnIndex{}; columnIndex < gridSize; columnIndex++)
 		{
 			// Calc agent count / index
 			const int agentIndex{ rowIndex * gridSize + columnIndex };
-			if (agentIndex >= m_FlockSize) break;  // Stop the function when enough are created
+			if(agentIndex >= m_FlockSize) break;  // Stop the function when enough are created
 			std::cout << agentIndex << "\n";
 
 

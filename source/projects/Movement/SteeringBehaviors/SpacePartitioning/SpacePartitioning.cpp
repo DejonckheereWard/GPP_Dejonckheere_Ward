@@ -41,7 +41,7 @@ Elite::Vector2 Cell::GetRectCenter() const
 
 // --- Partitioned Space ---
 // -------------------------
-CellSpace::CellSpace(float width, float height, int rows, int cols, int maxEntities) :
+CellSpace::CellSpace(float width, float height, int rows, int cols, int maxEntities):
 	m_SpaceWidth{ width },
 	m_SpaceHeight{ height },
 	m_NrOfRows{ rows },
@@ -51,11 +51,12 @@ CellSpace::CellSpace(float width, float height, int rows, int cols, int maxEntit
 	m_NeighborCells{ rows * cols },
 	m_NrOfNeighborCells{ 0 },
 	m_CellWidth{ width / cols },
-	m_CellHeight{ height / rows }
+	m_CellHeight{ height / rows },
+	m_DrawCellAgentCount{ false }
 {
-	for (int row{}; row < rows; ++row)
+	for(int row{}; row < rows; ++row)
 	{
-		for (int col{}; col < cols; ++col)
+		for(int col{}; col < cols; ++col)
 		{
 			float left = col * m_CellWidth;
 			float bottom = row * m_CellHeight;
@@ -68,7 +69,7 @@ CellSpace::CellSpace(float width, float height, int rows, int cols, int maxEntit
 
 CellSpace::~CellSpace()
 {
-	for (Cell* c : m_Cells)
+	for(Cell* c : m_Cells)
 	{
 		delete c;
 	}
@@ -91,7 +92,7 @@ void CellSpace::UpdateAgentCell(SteeringAgent* agent)
 	const int previousCellIndex{ PositionToIndex(agent->GetOldPosition()) };
 
 	// If the agent has moved to another cell, remove it from the old & add it to the new
-	if (newCellIndex != previousCellIndex)
+	if(newCellIndex != previousCellIndex)
 	{
 		m_Cells[previousCellIndex]->agents.remove(agent);
 		m_Cells[newCellIndex]->agents.push_back(agent);
@@ -111,19 +112,19 @@ void CellSpace::RegisterNeighbors(SteeringAgent* agent, float queryRadius)
 
 	const Elite::Vector2 startIndex{ PositionToRowColumn(boundingBoxLeftBottom) };
 	const Elite::Vector2 endIndex{ PositionToRowColumn(boundingBoxRightTop) };
-	
+
 
 	// Loop over every row & column, add all the agents to a list of agents
 	m_NrOfNeighbors = 0;  // Reset the value to 0	
 	m_NrOfNeighborCells = 0;  // Reset amount of cells
-	
-	for (int row{ int(startIndex.y) }; row <= int(endIndex.y); ++row)
+
+	for(int row{ int(startIndex.y) }; row <= int(endIndex.y); ++row)
 	{
-		for (int column{ int(startIndex.x) }; column <= int(endIndex.x); ++column)
+		for(int column{ int(startIndex.x) }; column <= int(endIndex.x); ++column)
 		{
 			// Get the index of the cell
 			const int cellIndex{ (row * m_NrOfCols + column) % (m_NrOfCols * m_NrOfRows) };
-			for (SteeringAgent* cellAgent : m_Cells[cellIndex]->agents)
+			for(SteeringAgent* cellAgent : m_Cells[cellIndex]->agents)
 			{
 				m_Neighbors[m_NrOfNeighbors++] = cellAgent;
 			}
@@ -136,7 +137,7 @@ void CellSpace::RegisterNeighbors(SteeringAgent* agent, float queryRadius)
 
 void CellSpace::EmptyCells()
 {
-	for (Cell* c : m_Cells)
+	for(Cell* c : m_Cells)
 	{
 		c->agents.clear();
 	}
@@ -145,7 +146,7 @@ void CellSpace::EmptyCells()
 void CellSpace::RenderCells() const
 {
 	const Elite::Color gridColor{ 0.67f, 0.67f, 0.0f, 0.8f };
-	for (Cell* c : m_Cells)
+	for(Cell* c : m_Cells)
 	{
 		std::vector<Elite::Vector2> rectPoints = c->GetRectPoints();
 		// Create Polygon object with the rectPoints
@@ -155,15 +156,15 @@ void CellSpace::RenderCells() const
 		leftTop.y -= 1.0f;
 
 		if(m_DrawCellAgentCount)
-			
+
 			DEBUGRENDERER2D->DrawString(leftTop, std::to_string(c->agents.size()).c_str());
 	}
 }
 
 void CellSpace::RenderActiveCells() const
 {
-	const Elite::Color activeColor{ 1.0f, 0.0f, 0.0f, 0.8f }; 
-	for (int i{}; i < m_NrOfNeighborCells; ++i)
+	const Elite::Color activeColor{ 0.0f, 1.0f, 0.0f, 0.8f };
+	for(int i{}; i < m_NrOfNeighborCells; ++i)
 	{
 		std::vector<Elite::Vector2> rectPoints = m_NeighborCells[i]->GetRectPoints();
 		DEBUGRENDERER2D->DrawPolygon(rectPoints.data(), rectPoints.size(), activeColor, -0.1f);

@@ -5,14 +5,14 @@
 //#define ActiveApp_Sandbox
 //#define ActiveApp_Steering
 //#define ActiveApp_CombinedSteering
-//#define ActiveApp_Flocking
+#define ActiveApp_Flocking
 //#define ActiveApp_GraphTheory
 //#define ActiveApp_ASTAR
 //#define ActiveApp_NavMeshGraph
 //#define ActiveApp_FSM
 //#define ActiveApp_BT
 //#define ActiveApp_IM
-#define ActiveApp_AgarioIM
+//#define ActiveApp_AgarioIM
 
 
 //---------- Registered Applications -----------
@@ -75,7 +75,7 @@ typedef App_AgarioGame_IM CurrentApp;
 
 
 class App_Selector {
-public: 
+public:
 	static IApp* CreateApp() {
 		IApp* myApp = new CurrentApp();
 		return myApp;
