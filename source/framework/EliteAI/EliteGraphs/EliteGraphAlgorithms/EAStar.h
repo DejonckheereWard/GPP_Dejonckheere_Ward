@@ -64,21 +64,21 @@ namespace Elite
 		// Add start node to open list to kickstart the loop
 		openList.push_back(currentRecord);
 
-		while (!openList.empty())
+		while(!openList.empty())
 		{
 			// NodeRecord's are sorted by their estimatedTotalCost -> Heuristic Cost -> F-COST
 			// Get the noderecord with the lowest cost
 			currentRecord = *std::min_element(openList.begin(), openList.end());
 
 			// Check if we found the goal node
-			if (currentRecord.pNode == pGoalNode)
+			if(currentRecord.pNode == pGoalNode)
 			{
 				closedList.push_back(currentRecord);
 				break;
 			}
 
 			// Loop over all connections of the current node & loop over them
-			for (const auto& connection : m_pGraph->GetNodeConnections(currentRecord.pNode))
+			for(const auto& connection : m_pGraph->GetNodeConnections(currentRecord.pNode))
 			{
 				// For each connection, calculate the total cost SO FAR (not estimated) -> G-COST
 				const auto connectionNode{ m_pGraph->GetNode(connection->GetTo()) };
@@ -96,11 +96,11 @@ namespace Elite
 				auto findNodeLambda = [connectionNode](NodeRecord rn) { return rn.pNode == connectionNode; };
 				auto closedNode = std::find_if(closedList.begin(), closedList.end(), findNodeLambda);
 
-				if (closedNode != closedList.end())
+				if(closedNode != closedList.end())
 				{
 					NodeRecord record = *closedNode;
 					// Check if the existing connection has a higher cost than the new connection's cost
-					if (record.costSoFar > costSoFar)
+					if(record.costSoFar > costSoFar)
 					{
 						// If it is higher, erase it from the closedList
 						closedList.erase(std::remove(closedList.begin(), closedList.end(), record));
@@ -111,10 +111,10 @@ namespace Elite
 
 				// Check if the connection is already in the open list
 				auto openNode = std::find_if(openList.begin(), openList.end(), findNodeLambda);
-				if (openNode != openList.end())
+				if(openNode != openList.end())
 				{
 					NodeRecord record = *openNode;
-					if (record.costSoFar > costSoFar)
+					if(record.costSoFar > costSoFar)
 					{
 						// If it is higher, erase it from the closedList
 						openList.erase(std::remove(openList.begin(), openList.end(), record));
@@ -122,11 +122,13 @@ namespace Elite
 					continue;
 				}
 
-				NodeRecord& newRecord = openList.emplace_back(NodeRecord{});
+				NodeRecord newRecord{};
 				newRecord.pNode = connectionNode;
 				newRecord.pConnection = connection;
 				newRecord.costSoFar = costSoFar;
 				newRecord.estimatedTotalCost = estimatedTotalCost;
+
+				openList.push_back(newRecord);
 			}
 
 			// Add current to closed list & remove from the open list
@@ -135,14 +137,14 @@ namespace Elite
 
 		}
 
-		if (currentRecord.pNode != pGoalNode)
+		if(currentRecord.pNode != pGoalNode)
 		{
 			// No path found
 			return path;
 		}
 
 		// Create the path from the current record all the way back to the start
-		while (currentRecord.pNode != pStartNode)
+		while(currentRecord.pNode != pStartNode)
 		{
 			path.push_back(currentRecord.pNode);
 
@@ -150,7 +152,7 @@ namespace Elite
 
 			auto findNodeLambda = [previousNode](NodeRecord rn) { return rn.pNode == previousNode; };
 			auto closedNode = std::find_if(closedList.begin(), closedList.end(), findNodeLambda);
-			if (closedNode != closedList.end())
+			if(closedNode != closedList.end())
 			{
 				currentRecord = *closedNode;
 			}

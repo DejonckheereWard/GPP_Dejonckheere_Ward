@@ -100,7 +100,7 @@ namespace BT_Conditions
 		float closestDistSqr{ searchRadius * searchRadius };
 
 		// TODO: Debug Rendering
-
+	
 		Elite::Vector2 agentPos{ pAgent->GetPosition() };
 		for (auto& pFood : *pFoodVec)
 		{
